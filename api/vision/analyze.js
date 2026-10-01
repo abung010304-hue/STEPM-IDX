@@ -1,6 +1,4 @@
-import OpenAI from "openai";
-
-const MODEL = process.env.OPENAI_VISION_MODEL || "gpt-5.6-luna";
+const MODEL = "gemini-3.8-flash";
 
 const schema = {
   type: "object",
@@ -12,22 +10,11 @@ const schema = {
       additionalProperties: false,
       properties: {
         symbol: { type: "string" },
-        timeframes: {
-          type: "array",
-          items: { type: "string" }
-        },
-        prices: {
-          type: "array",
-          items: { type: "string" }
-        },
+        timeframes: { type: "array", items: { type: "string" } },
+        prices: { type: "array", items: { type: "string" } },
         status: { type: "string" }
       },
-      required: [
-        "symbol",
-        "timeframes",
-        "prices",
-        "status"
-      ]
+      required: ["symbol", "timeframes", "prices", "status"]
     },
 
     indicators: {
@@ -69,22 +56,13 @@ const schema = {
               timeframe: { type: "string" },
               status: { type: "string" }
             },
-            required: [
-              "name",
-              "value",
-              "timeframe",
-              "status"
-            ]
+            required: ["name", "value", "timeframe", "status"]
           }
         },
 
         status: { type: "string" }
       },
-      required: [
-        "detected",
-        "values",
-        "status"
-      ]
+      required: ["detected", "values", "status"]
     },
 
     reversal_candles: {
@@ -115,10 +93,7 @@ const schema = {
 
         status: { type: "string" }
       },
-      required: [
-        "detected",
-        "status"
-      ]
+      required: ["detected", "status"]
     },
 
     reversal_chart_patterns: {
@@ -149,10 +124,7 @@ const schema = {
 
         status: { type: "string" }
       },
-      required: [
-        "detected",
-        "status"
-      ]
+      required: ["detected", "status"]
     },
 
     market_structure: {
@@ -160,54 +132,23 @@ const schema = {
       additionalProperties: false,
       properties: {
         trend: { type: "string" },
-
-        swings: {
-          type: "array",
-          items: { type: "string" }
-        },
-
-        bos: {
-          type: "array",
-          items: { type: "string" }
-        },
-
-        choch: {
-          type: "array",
-          items: { type: "string" }
-        },
-
+        swings: { type: "array", items: { type: "string" } },
+        bos: { type: "array", items: { type: "string" } },
+        choch: { type: "array", items: { type: "string" } },
         status: { type: "string" }
       },
-      required: [
-        "trend",
-        "swings",
-        "bos",
-        "choch",
-        "status"
-      ]
+      required: ["trend", "swings", "bos", "choch", "status"]
     },
 
     support_resistance: {
       type: "object",
       additionalProperties: false,
       properties: {
-        support: {
-          type: "array",
-          items: { type: "string" }
-        },
-
-        resistance: {
-          type: "array",
-          items: { type: "string" }
-        },
-
+        support: { type: "array", items: { type: "string" } },
+        resistance: { type: "array", items: { type: "string" } },
         status: { type: "string" }
       },
-      required: [
-        "support",
-        "resistance",
-        "status"
-      ]
+      required: ["support", "resistance", "status"]
     },
 
     volume: {
@@ -218,11 +159,7 @@ const schema = {
         behavior: { type: "string" },
         confirmation: { type: "string" }
       },
-      required: [
-        "status",
-        "behavior",
-        "confirmation"
-      ]
+      required: ["status", "behavior", "confirmation"]
     },
 
     order_book: {
@@ -230,51 +167,23 @@ const schema = {
       additionalProperties: false,
       properties: {
         status: { type: "string" },
-
-        bid: {
-          type: "array",
-          items: { type: "string" }
-        },
-
-        offer: {
-          type: "array",
-          items: { type: "string" }
-        },
-
+        bid: { type: "array", items: { type: "string" } },
+        offer: { type: "array", items: { type: "string" } },
         notes: { type: "string" }
       },
-      required: [
-        "status",
-        "bid",
-        "offer",
-        "notes"
-      ]
+      required: ["status", "bid", "offer", "notes"]
     },
 
     multi_timeframe: {
       type: "object",
       additionalProperties: false,
       properties: {
-        frames: {
-          type: "array",
-          items: { type: "string" }
-        },
-
+        frames: { type: "array", items: { type: "string" } },
         confluence: { type: "string" },
-
-        conflicts: {
-          type: "array",
-          items: { type: "string" }
-        },
-
+        conflicts: { type: "array", items: { type: "string" } },
         status: { type: "string" }
       },
-      required: [
-        "frames",
-        "confluence",
-        "conflicts",
-        "status"
-      ]
+      required: ["frames", "confluence", "conflicts", "status"]
     },
 
     evidence_quality: {
@@ -282,22 +191,10 @@ const schema = {
       additionalProperties: false,
       properties: {
         overall: { type: "string" },
-
-        ambiguous: {
-          type: "array",
-          items: { type: "string" }
-        },
-
-        missing: {
-          type: "array",
-          items: { type: "string" }
-        }
+        ambiguous: { type: "array", items: { type: "string" } },
+        missing: { type: "array", items: { type: "string" } }
       },
-      required: [
-        "overall",
-        "ambiguous",
-        "missing"
-      ]
+      required: ["overall", "ambiguous", "missing"]
     }
   },
 
@@ -374,11 +271,6 @@ ATURAN WAJIB:
 16. Jangan menyimpan foto pada aplikasi.
 
 Untuk indicators.values gunakan array.
-Setiap item values harus memiliki:
-- name
-- value
-- timeframe
-- status
 
 Jika nilai indikator tidak terlihat:
 value = NOT_AVAILABLE
@@ -396,11 +288,27 @@ function sendJSON(res, status, data) {
 }
 
 
+function parseDataUrl(dataUrl) {
+  const match = dataUrl.match(
+    /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+  );
+
+  if (!match) {
+    throw new Error("Format data URL gambar tidak valid.");
+  }
+
+  return {
+    mimeType: match[1],
+    data: match[2]
+  };
+}
+
+
 export default async function handler(req, res) {
 
   if (req.method === "GET") {
     return sendJSON(res, 200, {
-      ok: Boolean(process.env.OPENAI_API_KEY),
+      ok: Boolean(process.env.GEMINI_API_KEY),
       model: MODEL,
       photosPersisted: false
     });
@@ -416,11 +324,11 @@ export default async function handler(req, res) {
   }
 
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return sendJSON(res, 500, {
-      error: "OPENAI_API_KEY belum dikonfigurasi di Vercel."
+      error: "GEMINI_API_KEY belum dikonfigurasi di Vercel."
     });
   }
 
@@ -445,6 +353,18 @@ export default async function handler(req, res) {
     }
 
 
+    const parts = [
+      {
+        text:
+          instructions +
+          `
+
+Jumlah foto: ${images.length}.
+Nomor foto harus dipertahankan secara konsisten pada evidence.`
+      }
+    ];
+
+
     for (const image of images) {
 
       if (!image?.dataUrl?.startsWith("data:image/")) {
@@ -459,77 +379,92 @@ export default async function handler(req, res) {
           error: "Satu gambar terlalu besar."
         });
       }
+
+
+      const parsed = parseDataUrl(image.dataUrl);
+
+
+      parts.push({
+        inline_data: {
+          mime_type: parsed.mimeType,
+          data: parsed.data
+        }
+      });
+
     }
 
 
-    const client = new OpenAI({
-      apiKey
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/` +
+      `${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+
+    const response = await fetch(url, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+
+        contents: [
+          {
+            role: "user",
+            parts
+          }
+        ],
+
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema,
+          temperature: 0
+        }
+
+      })
+
     });
 
 
-    const content = [
-
-      {
-        type: "input_text",
-
-        text:
-          instructions +
-          `
-
-Jumlah foto: ${images.length}.
-Nomor foto harus dipertahankan secara konsisten pada evidence.`
-      },
-
-      ...images.map((image) => ({
-        type: "input_image",
-        image_url: image.dataUrl,
-        detail: "high"
-      }))
-
-    ];
+    const data = await response.json();
 
 
-    const response = await client.responses.create({
+    if (!response.ok) {
 
-      model: MODEL,
+      console.error("Gemini API error:", data);
 
-      store: false,
+      throw new Error(
+        data?.error?.message ||
+        "Gemini API gagal memproses gambar."
+      );
 
-      input: [
-        {
-          role: "user",
-          content
-        }
-      ],
+    }
 
-      text: {
-        format: {
-          type: "json_schema",
-          name: "stepm_idx_v2_visual_evidence",
 
-          description:
-            "Structured visual evidence for STEPM-IDX V2",
+    const text =
+      data?.candidates?.[0]?.content?.parts
+        ?.map(part => part.text || "")
+        .join("") || "";
 
-          strict: true,
 
-          schema
-        }
-      },
-
-      max_output_tokens: 12000
-    });
+    if (!text) {
+      throw new Error(
+        "Gemini tidak mengembalikan hasil analisis."
+      );
+    }
 
 
     let result;
 
     try {
 
-      result = JSON.parse(response.output_text);
+      result = JSON.parse(text);
 
     } catch {
 
       throw new Error(
-        "Vision Engine mengembalikan JSON tidak valid."
+        "Gemini mengembalikan JSON yang tidak valid."
       );
 
     }
