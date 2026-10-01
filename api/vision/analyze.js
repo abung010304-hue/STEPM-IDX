@@ -1,5 +1,18 @@
 const MODEL = "gemini-3.8-flash";
 
+const MAX_RETRIES = 4;
+const RETRY_DELAYS = [2000, 4000, 8000, 16000];
+
+const RETRYABLE_STATUS_CODES = new Set([
+  408,
+  429,
+  500,
+  502,
+  503,
+  504
+]);
+
+
 const schema = {
   type: "object",
 
@@ -373,7 +386,6 @@ function sendJSON(res, status, data) {
 
 
 function parseDataUrl(dataUrl) {
-
   const match = dataUrl.match(
     /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
   );
@@ -386,6 +398,80 @@ function parseDataUrl(dataUrl) {
     mimeType: match[1],
     data: match[2]
   };
+}
+
+
+/*
+ * Gemini temporary-error retry.
+ *
+ * Percobaan:
+ * 1. langsung
+ * 2. tunggu 2 detik
+ * 3. tunggu 4 detik
+ * 4. tunggu 8 detik
+ * 5. tunggu 16 detik
+ *
+ * Tidak melakukan retry untuk error permanen
+ * seperti API key salah atau request/schema invalid.
+ */
+async function fetchGeminiWithRetry(url, options) {
+
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+
+    try {
+
+      const response = await fetch(url, options);
+
+      if (
+        response.ok ||
+        !RETRYABLE_STATUS_CODES.has(response.status) ||
+        attempt === MAX_RETRIES
+      ) {
+        return response;
+      }
+
+      const delay = RETRY_DELAYS[attempt] || 16000;
+
+      console.warn(
+        `Gemini temporary error ${response.status}. ` +
+        `Retry ${attempt + 1}/${MAX_RETRIES} ` +
+        `after ${delay}ms.`
+      );
+
+      await new Promise(resolve =>
+        setTimeout(resolve, delay)
+      );
+
+    } catch (error) {
+
+      lastError = error;
+
+      if (attempt === MAX_RETRIES) {
+        throw error;
+      }
+
+      const delay = RETRY_DELAYS[attempt] || 16000;
+
+      console.warn(
+        `Gemini network error. ` +
+        `Retry ${attempt + 1}/${MAX_RETRIES} ` +
+        `after ${delay}ms.`,
+        error
+      );
+
+      await new Promise(resolve =>
+        setTimeout(resolve, delay)
+      );
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  throw new Error("Gemini request gagal setelah retry.");
 }
 
 
@@ -501,7 +587,7 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
       `${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
 
-    const response = await fetch(url, {
+    const requestOptions = {
 
       method: "POST",
 
@@ -526,7 +612,18 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
 
       })
 
-    });
+    };
+
+
+    /*
+     * Gunakan retry wrapper.
+     * Ini menggantikan fetch(url, requestOptions)
+     * langsung yang sebelumnya.
+     */
+    const response = await fetchGeminiWithRetry(
+      url,
+      requestOptions
+    );
 
 
     const data = await response.json();
@@ -538,7 +635,7 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
 
       throw new Error(
         data?.error?.message ||
-        "Gemini API gagal memproses gambar."
+        `Gemini API gagal memproses gambar. HTTP ${response.status}`
       );
 
     }
@@ -597,7 +694,7 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
 
   } catch (error) {
 
-    console.error(error);
+    console.error("STEPM-IDX Vision Engine error:", error);
 
     return sendJSON(res, 500, {
       error: error?.message || String(error)
