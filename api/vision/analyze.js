@@ -2,30 +2,37 @@ const MODEL = "gemini-3.8-flash";
 
 const schema = {
   type: "object",
-  additionalProperties: false,
 
   properties: {
     chart_identity: {
       type: "object",
-      additionalProperties: false,
       properties: {
         symbol: { type: "string" },
-        timeframes: { type: "array", items: { type: "string" } },
-        prices: { type: "array", items: { type: "string" } },
+        timeframes: {
+          type: "array",
+          items: { type: "string" }
+        },
+        prices: {
+          type: "array",
+          items: { type: "string" }
+        },
         status: { type: "string" }
       },
-      required: ["symbol", "timeframes", "prices", "status"]
+      required: [
+        "symbol",
+        "timeframes",
+        "prices",
+        "status"
+      ]
     },
 
     indicators: {
       type: "object",
-      additionalProperties: false,
       properties: {
         detected: {
           type: "array",
           items: {
             type: "object",
-            additionalProperties: false,
             properties: {
               name: { type: "string" },
               value: { type: "string" },
@@ -49,31 +56,37 @@ const schema = {
           type: "array",
           items: {
             type: "object",
-            additionalProperties: false,
             properties: {
               name: { type: "string" },
               value: { type: "string" },
               timeframe: { type: "string" },
               status: { type: "string" }
             },
-            required: ["name", "value", "timeframe", "status"]
+            required: [
+              "name",
+              "value",
+              "timeframe",
+              "status"
+            ]
           }
         },
 
         status: { type: "string" }
       },
-      required: ["detected", "values", "status"]
+      required: [
+        "detected",
+        "values",
+        "status"
+      ]
     },
 
     reversal_candles: {
       type: "object",
-      additionalProperties: false,
       properties: {
         detected: {
           type: "array",
           items: {
             type: "object",
-            additionalProperties: false,
             properties: {
               name: { type: "string" },
               timeframe: { type: "string" },
@@ -93,18 +106,19 @@ const schema = {
 
         status: { type: "string" }
       },
-      required: ["detected", "status"]
+      required: [
+        "detected",
+        "status"
+      ]
     },
 
     reversal_chart_patterns: {
       type: "object",
-      additionalProperties: false,
       properties: {
         detected: {
           type: "array",
           items: {
             type: "object",
-            additionalProperties: false,
             properties: {
               name: { type: "string" },
               timeframe: { type: "string" },
@@ -124,77 +138,149 @@ const schema = {
 
         status: { type: "string" }
       },
-      required: ["detected", "status"]
+      required: [
+        "detected",
+        "status"
+      ]
     },
 
     market_structure: {
       type: "object",
-      additionalProperties: false,
       properties: {
         trend: { type: "string" },
-        swings: { type: "array", items: { type: "string" } },
-        bos: { type: "array", items: { type: "string" } },
-        choch: { type: "array", items: { type: "string" } },
+
+        swings: {
+          type: "array",
+          items: { type: "string" }
+        },
+
+        bos: {
+          type: "array",
+          items: { type: "string" }
+        },
+
+        choch: {
+          type: "array",
+          items: { type: "string" }
+        },
+
         status: { type: "string" }
       },
-      required: ["trend", "swings", "bos", "choch", "status"]
+      required: [
+        "trend",
+        "swings",
+        "bos",
+        "choch",
+        "status"
+      ]
     },
 
     support_resistance: {
       type: "object",
-      additionalProperties: false,
       properties: {
-        support: { type: "array", items: { type: "string" } },
-        resistance: { type: "array", items: { type: "string" } },
+        support: {
+          type: "array",
+          items: { type: "string" }
+        },
+
+        resistance: {
+          type: "array",
+          items: { type: "string" }
+        },
+
         status: { type: "string" }
       },
-      required: ["support", "resistance", "status"]
+      required: [
+        "support",
+        "resistance",
+        "status"
+      ]
     },
 
     volume: {
       type: "object",
-      additionalProperties: false,
       properties: {
         status: { type: "string" },
         behavior: { type: "string" },
         confirmation: { type: "string" }
       },
-      required: ["status", "behavior", "confirmation"]
+      required: [
+        "status",
+        "behavior",
+        "confirmation"
+      ]
     },
 
     order_book: {
       type: "object",
-      additionalProperties: false,
       properties: {
         status: { type: "string" },
-        bid: { type: "array", items: { type: "string" } },
-        offer: { type: "array", items: { type: "string" } },
+
+        bid: {
+          type: "array",
+          items: { type: "string" }
+        },
+
+        offer: {
+          type: "array",
+          items: { type: "string" }
+        },
+
         notes: { type: "string" }
       },
-      required: ["status", "bid", "offer", "notes"]
+      required: [
+        "status",
+        "bid",
+        "offer",
+        "notes"
+      ]
     },
 
     multi_timeframe: {
       type: "object",
-      additionalProperties: false,
       properties: {
-        frames: { type: "array", items: { type: "string" } },
+        frames: {
+          type: "array",
+          items: { type: "string" }
+        },
+
         confluence: { type: "string" },
-        conflicts: { type: "array", items: { type: "string" } },
+
+        conflicts: {
+          type: "array",
+          items: { type: "string" }
+        },
+
         status: { type: "string" }
       },
-      required: ["frames", "confluence", "conflicts", "status"]
+      required: [
+        "frames",
+        "confluence",
+        "conflicts",
+        "status"
+      ]
     },
 
     evidence_quality: {
       type: "object",
-      additionalProperties: false,
       properties: {
         overall: { type: "string" },
-        ambiguous: { type: "array", items: { type: "string" } },
-        missing: { type: "array", items: { type: "string" } }
+
+        ambiguous: {
+          type: "array",
+          items: { type: "string" }
+        },
+
+        missing: {
+          type: "array",
+          items: { type: "string" }
+        }
       },
-      required: ["overall", "ambiguous", "missing"]
+      required: [
+        "overall",
+        "ambiguous",
+        "missing"
+      ]
     }
   },
 
@@ -270,8 +356,6 @@ ATURAN WAJIB:
 15. Jangan membuat order book yang tidak terlihat.
 16. Jangan menyimpan foto pada aplikasi.
 
-Untuk indicators.values gunakan array.
-
 Jika nilai indikator tidak terlihat:
 value = NOT_AVAILABLE
 
@@ -289,6 +373,7 @@ function sendJSON(res, status, data) {
 
 
 function parseDataUrl(dataUrl) {
+
   const match = dataUrl.match(
     /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
   );
@@ -307,29 +392,36 @@ function parseDataUrl(dataUrl) {
 export default async function handler(req, res) {
 
   if (req.method === "GET") {
+
     return sendJSON(res, 200, {
       ok: Boolean(process.env.GEMINI_API_KEY),
       model: MODEL,
       photosPersisted: false
     });
+
   }
 
 
   if (req.method !== "POST") {
+
     res.setHeader("Allow", "GET, POST");
 
     return sendJSON(res, 405, {
       error: "Method Not Allowed"
     });
+
   }
 
 
   const apiKey = process.env.GEMINI_API_KEY;
 
+
   if (!apiKey) {
+
     return sendJSON(res, 500, {
       error: "GEMINI_API_KEY belum dikonfigurasi di Vercel."
     });
+
   }
 
 
@@ -347,13 +439,16 @@ export default async function handler(req, res) {
 
 
     if (images.length < 1 || images.length > 10) {
+
       return sendJSON(res, 400, {
         error: "Kirim 1-10 gambar."
       });
+
     }
 
 
     const parts = [
+
       {
         text:
           instructions +
@@ -362,22 +457,27 @@ export default async function handler(req, res) {
 Jumlah foto: ${images.length}.
 Nomor foto harus dipertahankan secara konsisten pada evidence.`
       }
+
     ];
 
 
     for (const image of images) {
 
       if (!image?.dataUrl?.startsWith("data:image/")) {
+
         return sendJSON(res, 400, {
           error: "Semua input harus berupa data URL gambar."
         });
+
       }
 
 
       if (image.dataUrl.length > 3000000) {
+
         return sendJSON(res, 413, {
           error: "Satu gambar terlalu besar."
         });
+
       }
 
 
@@ -385,10 +485,12 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
 
 
       parts.push({
+
         inline_data: {
           mime_type: parsed.mimeType,
           data: parsed.data
         }
+
       });
 
     }
@@ -449,13 +551,16 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
 
 
     if (!text) {
+
       throw new Error(
         "Gemini tidak mengembalikan hasil analisis."
       );
+
     }
 
 
     let result;
+
 
     try {
 
