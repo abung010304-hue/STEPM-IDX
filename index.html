@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>STEPM-IDX — V1–V5 Visual Trading Analyst</title>
+<style>
+:root{--bg:#070b12;--panel:#0d1420;--panel2:#111b2a;--line:#223047;--text:#eaf1fb;--muted:#8fa0b7;--accent:#55a8ff;--good:#35d39a;--warn:#ffc857;--bad:#ff6878;--shadow:0 16px 45px rgba(0,0,0,.28)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#10223b 0,#070b12 42%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}.app{max-width:1450px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border:1px solid #31577e;border-radius:13px;display:grid;place-items:center;background:#0d1b2c;font-weight:900;color:var(--accent)}h1{font-size:21px;margin:0}.sub{color:var(--muted);font-size:12px;margin-top:3px}.status{display:flex;gap:8px;flex-wrap:wrap}.badge{border:1px solid var(--line);background:#0b111b;padding:7px 10px;border-radius:999px;font-size:11px;color:var(--muted)}.badge b{color:var(--text)}
+.nav{display:flex;gap:7px;overflow:auto;padding:4px;margin-bottom:14px}.nav button{white-space:nowrap;border:1px solid var(--line);background:#0b111b;color:var(--muted);padding:9px 13px;border-radius:10px}.nav button.active{background:#123050;color:#fff;border-color:#2e6598}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.card{grid-column:span 12;background:linear-gradient(180deg,rgba(17,27,42,.96),rgba(10,16,26,.96));border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:var(--shadow)}.half{grid-column:span 6}.third{grid-column:span 4}.title{font-size:13px;font-weight:800;margin-bottom:10px}.muted{color:var(--muted)}.small{font-size:11px}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#111c2b;color:var(--text);padding:9px 12px;border-radius:10px}.btn.primary{background:#14548a;border-color:#267ab9}.btn.good{background:#104d3d;border-color:#187a5d}.btn.danger{background:#4c1721;border-color:#8c2a38}.btn:disabled{opacity:.45;cursor:not-allowed}.drop{border:1.5px dashed #3b628a;border-radius:15px;min-height:185px;display:grid;place-items:center;text-align:center;padding:22px;background:rgba(18,39,62,.28)}.drop.drag{border-color:var(--accent);background:rgba(36,105,170,.15)}.drop input{display:none}.drop .big{font-size:35px}.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;margin-top:12px}.thumb{position:relative;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#070b12;aspect-ratio:16/10}.thumb img{width:100%;height:100%;object-fit:cover;display:block}.thumb span{position:absolute;left:5px;top:5px;background:#05080dcc;padding:3px 6px;border-radius:6px;font-size:10px}.thumb button{position:absolute;right:5px;top:5px;border:0;background:#05080ddd;color:#fff;border-radius:6px;width:24px;height:24px}.progress{height:8px;background:#09101a;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#2c83d0,#55a8ff);transition:.3s}.kv{display:grid;grid-template-columns:170px 1fr;border-top:1px solid var(--line);padding:8px 0;font-size:12px}.kv:first-child{border-top:0}.pill{display:inline-block;border:1px solid var(--line);padding:5px 8px;border-radius:999px;font-size:11px;margin:2px}.pill.good{border-color:#17664e;color:#6ee6bd}.pill.warn{border-color:#755e22;color:#ffd86b}.pill.bad{border-color:#79303b;color:#ff8c99}.score{font-size:30px;font-weight:900}.meter{height:10px;background:#08101a;border-radius:99px;overflow:hidden}.meter i{display:block;height:100%;width:0;background:#55a8ff}.table{width:100%;border-collapse:collapse;font-size:11px}.table th,.table td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.table th{color:var(--muted)}textarea,input[type=text],input[type=number],select{width:100%;background:#080e17;border:1px solid var(--line);color:var(--text);padding:9px;border-radius:9px}.scenario{border-left:3px solid var(--accent);padding:10px 12px;background:#0a111b;border-radius:8px;margin:7px 0}.dangerline{border-left-color:var(--bad)}.goodline{border-left-color:var(--good)}.empty{text-align:center;padding:28px;color:var(--muted)}.history-item{border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:8px;background:#0a111b}.footer{margin:18px 0;color:#65758a;text-align:center;font-size:10px}
+@media(max-width:850px){.half,.third{grid-column:span 12}.app{padding:10px}.top{align-items:flex-start}.status{display:none}.kv{grid-template-columns:125px 1fr}.thumbs{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand"><div class="logo">S</div><div><h1>STEPM-IDX</h1><div class="sub">Visual Trading Analyst · V1–V5 Prototype</div></div></div>
+  <div class="status"><span class="badge">SOURCE: <b>PHOTO</b></span><span class="badge">LIVE FEED: <b>OFF</b></span><span class="badge">AI: <b>ADAPTER</b></span></div>
+</header>
+
+<nav class="nav" id="nav">
+  <button data-page="v1" class="active">V1 · Upload & Scan</button>
+  <button data-page="v2">V2 · Visual Analyst</button>
+  <button data-page="v3">V3 · AI + Math</button>
+  <button data-page="v4">V4 · BUY / TP / SL</button>
+  <button data-page="v5">V5 · History</button>
+</nav>
+
+<section id="v1" class="page active">
+<div class="grid">
+  <div class="card">
+    <div class="title">UPLOAD FOTO TRADINGVIEW · 1–10 FOTO</div>
+    <div class="drop" id="drop">
+      <div><div class="big">＋</div><b>Tambahkan foto / screenshot</b><div class="muted small">Drag & drop atau pilih file · JPG/PNG/WebP · maksimal 10</div>
+      <label class="btn primary" style="display:inline-block;margin-top:12px">Pilih Foto<input id="files" type="file" accept="image/*" multiple></label></div>
+    </div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="scanBtn">🔍 Scan Foto</button><button class="btn" id="clearBtn">Bersihkan</button><span class="muted small" id="count">0/10</span></div>
+    <div style="margin-top:12px"><div class="small muted">Status scanner</div><div class="progress"><div class="bar" id="scanBar"></div></div><div class="small muted" id="scanStatus" style="margin-top:5px">Menunggu foto.</div></div>
+  </div>
+  <div class="card half"><div class="title">PAKET BUKTI</div><div id="packageInfo" class="empty">Belum ada foto.</div></div>
+  <div class="card half"><div class="title">PRINSIP DATA</div><div class="kv"><b>Sumber utama</b><span>Screenshot yang diunggah</span></div><div class="kv"><b>Data tak terlihat</b><span>NOT_AVAILABLE</span></div><div class="kv"><b>Live market</b><span>Modul inti tidak menggunakan live feed</span></div></div>
+</div>
+</section>
+
+<section id="v2" class="page">
+<div class="grid">
+  <div class="card">
+    <div class="title">V2 · AI VISUAL TRADING ANALYST</div>
+    <div class="scenario">
+      <b>Sumber analisis: foto/screenshot yang di-upload.</b><br>
+      <span class="muted small">V2 membaca bukti visual yang terlihat. Tidak menggunakan live market feed, OHLCV API, atau provider eksternal sebagai sumber utama.</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="visionAnalyzeBtn">🧠 Analisis Vision AI</button>
+      <span class="pill" id="visionStatus">VISION: READY</span>
+    </div>
+    <div class="small muted" id="visionMessage" style="margin-top:8px">Upload 1–10 screenshot lalu jalankan Vision AI. Foto dikirim ke backend hanya untuk analisis dan tidak disimpan oleh aplikasi.</div>
+    <div class="row" style="margin-top:10px">
+      <span class="pill">Indicator Recognition</span>
+      <span class="pill">Reversal Candle</span>
+      <span class="pill">Chart Pattern</span>
+      <span class="pill">Market Structure</span>
+      <span class="pill">All Timeframes</span>
+      <span class="pill">Order Book</span>
+    </div>
+  </div>
+
+  <div class="card third">
+    <div class="title">01 · CHART IDENTITY</div>
+    <div id="identity"></div>
+  </div>
+
+  <div class="card third">
+    <div class="title">02 · INDICATOR READER</div>
+    <div id="indicators"></div>
+  </div>
+
+  <div class="card third">
+    <div class="title">03 · MARKET STRUCTURE</div>
+    <div id="structure"></div>
+  </div>
+
+  <div class="card half">
+    <div class="title">04 · REVERSAL DETECTION</div>
+    <div class="small muted">Candlestick reversal</div>
+    <div id="candlePatterns" style="margin-top:6px"></div>
+    <div class="small muted" style="margin-top:10px">Chart reversal</div>
+    <div id="chartPatterns" style="margin-top:6px"></div>
+  </div>
+
+  <div class="card half">
+    <div class="title">05 · MULTI-TIMEFRAME + ORDER BOOK</div>
+    <div id="mtfbook"></div>
+  </div>
+
+  <div class="card half">
+    <div class="title">06 · SUPPORT / RESISTANCE + VOLUME</div>
+    <div id="srvol"></div>
+  </div>
+
+  <div class="card half">
+    <div class="title">07 · EVIDENCE QUALITY</div>
+    <div id="evidenceQuality"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">08 · V2 OUTPUT → V3</div>
+    <pre id="v2Payload">Belum ada evidence yang diproses.</pre>
+  </div>
+</div>
+</section>
+
+<section id="v3" class="page"><div class="grid">
+  <div class="card">
+    <div class="title">V3 · AI REASONING + MATHEMATICAL PROBABILITY ENGINE</div>
+    <div class="scenario"><b>Alur:</b> V2 Visual Evidence → Normalisasi → AI Reasoning Adapter → Confluence Engine → Probability Gate → Scenario Engine → Risk/Reward.</div>
+    <div class="row" style="margin-top:10px">
+      <span class="pill">Evidence-first</span><span class="pill">Deterministic scoring</span><span class="pill">No fabricated probability</span><span class="pill">Multi-timeframe</span><span class="pill">AI adapter boundary</span>
+    </div>
+  </div>
+  <div class="card half">
+    <div class="title">01 · EVIDENCE MATRIX</div><table class="table" id="evidence"></table>
+    <div class="small muted" style="margin-top:8px">Hanya evidence tervalidasi yang boleh menambah skor. NOT_AVAILABLE/UNCERTAIN tidak dianggap sinyal positif.</div>
+  </div>
+  <div class="card half">
+    <div class="title">02 · CONFLUENCE SCORE</div>
+    <div class="row"><div><div class="muted small">SCORE</div><div class="score" id="score">—</div></div><div style="flex:1;min-width:200px"><div class="meter"><i id="scorebar"></i></div><div class="muted small" id="scoreText" style="margin-top:6px">Belum dihitung.</div></div></div>
+    <div id="scoreBreakdown" style="margin-top:10px"></div>
+  </div>
+  <div class="card half">
+    <div class="title">03 · AI REASONING ADAPTER</div>
+    <div class="kv"><b>Status</b><span id="aiStatus">AI_ADAPTER_NOT_CONNECTED</span></div>
+    <textarea id="aiReasoning" rows="6" placeholder="Tempat hasil reasoning AI berbasis evidence V2. Jangan mengisi dengan asumsi yang tidak terlihat pada foto."></textarea>
+    <div class="small muted" style="margin-top:6px">Standalone HTML tidak menyimpan API key. Adapter backend/AI Vision dapat dihubungkan di titik ini.</div>
+  </div>
+  <div class="card half">
+    <div class="title">04 · PROBABILITY GATE</div>
+    <div class="small muted">Masukkan dataset/setup yang benar-benar terkalibrasi. Tanpa seluruh syarat, hasil tetap NOT_AVAILABLE.</div>
+    <div class="grid" style="margin-top:8px">
+      <div class="half"><label class="small muted">Setup definition</label><input id="probSetup" type="text" placeholder="Contoh: setup tertentu"></div>
+      <div class="half"><label class="small muted">Horizon</label><input id="probHorizon" type="text" placeholder="Contoh: 5 hari"></div>
+      <div class="third"><label class="small muted">Sample N</label><input id="probN" type="number" min="0" step="1" placeholder="0"></div>
+      <div class="third"><label class="small muted">Wins</label><input id="probWins" type="number" min="0" step="1" placeholder="0"></div>
+      <div class="third"><label class="small muted">Costs</label><input id="probCosts" type="text" placeholder="fee/slippage"></div>
+      <div class="half"><label class="small muted">Calibration status</label><select id="probCalibration"><option value="NOT_CALIBRATED">NOT_CALIBRATED</option><option value="CALIBRATED">CALIBRATED</option><option value="VALIDATED_OOS">VALIDATED_OOS</option></select></div>
+      <div class="half"><div class="scenario" id="probability">Probabilitas statistik: <b>NOT_AVAILABLE</b></div></div>
+    </div>
+    <button class="btn primary" id="calcProb" style="margin-top:8px">Hitung Probability Gate</button>
+  </div>
+  <div class="card">
+    <div class="title">05 · SCENARIO ENGINE</div>
+    <div id="scenarios"></div>
+  </div>
+  <div class="card half">
+    <div class="title">06 · RISK / REWARD MATHEMATICS</div>
+    <div class="small muted">Gunakan angka V4 hanya jika berasal dari evidence yang tervalidasi.</div>
+    <div class="kv"><b>Status</b><span id="v3rrStatus">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>Formula</b><span>Reward ÷ Risk</span></div>
+    <div class="kv"><b>Risk</b><span id="v3risk">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>Reward</b><span id="v3reward">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>R/R</b><span id="v3rr">NOT_AVAILABLE</span></div>
+  </div>
+  <div class="card half">
+    <div class="title">07 · V3 CANONICAL OUTPUT</div>
+    <pre id="v3Payload">Belum dihitung.</pre>
+    <button class="btn" id="sendV3ToV4">→ Kirim hasil ke V4</button>
+  </div>
+</div></section>
+
+<section id="v4" class="page"><div class="grid">
+  <div class="card"><div class="title">V4 · DECISION SUPPORT PLAN</div>
+    <div class="scenario"><b>Aturan:</b> V4 tidak mengarang level. BUY/SL/TP hanya dapat diisi dari evidence V2/V3 yang tervalidasi atau input manual yang jelas sumbernya.</div>
+    <div class="grid" style="margin-top:12px">
+      <div class="third"><label class="small muted">BUY LOW</label><input id="buyLow" type="number" step="0.01" placeholder="NOT_AVAILABLE"></div>
+      <div class="third"><label class="small muted">BUY HIGH</label><input id="buyHigh" type="number" step="0.01" placeholder="NOT_AVAILABLE"></div>
+      <div class="third"><label class="small muted">ENTRY MID</label><div class="scenario" id="entryMid">NOT_AVAILABLE</div></div>
+      <div class="third"><label class="small muted">SL</label><input id="sl" type="number" step="0.01" placeholder="NOT_AVAILABLE"></div>
+      <div class="third"><label class="small muted">TP1</label><input id="tp1" type="number" step="0.01" placeholder="NOT_AVAILABLE"></div>
+      <div class="third"><label class="small muted">TP2</label><input id="tp2" type="number" step="0.01" placeholder="NOT_AVAILABLE"></div>
+    </div>
+  </div>
+  <div class="card half"><div class="title">MATHEMATICAL CHECK</div>
+    <div class="kv"><b>Risk / unit</b><span id="v4risk">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>Reward TP1 / unit</b><span id="v4reward1">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>Reward TP2 / unit</b><span id="v4reward2">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>R/R TP1</b><span id="rr1">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>R/R TP2</b><span id="rr2">NOT_AVAILABLE</span></div>
+    <div class="kv"><b>Validation</b><span id="v4Status">NOT_AVAILABLE</span></div>
+  </div>
+  <div class="card half"><div class="title">SETUP CONDITIONS</div>
+    <textarea id="setupConditions" rows="5" placeholder="Kondisi yang harus terpenuhi sebelum level digunakan..."></textarea>
+  </div>
+  <div class="card half"><div class="title">INVALIDATION</div><textarea id="invalidation" rows="5" placeholder="Kondisi konkret yang membatalkan setup berdasarkan evidence."></textarea></div>
+  <div class="card half"><div class="title">CATATAN AI</div><textarea id="aiNote" rows="5" placeholder="Ringkasan reasoning berbasis bukti. Hindari asumsi yang tidak terlihat."></textarea></div>
+  <div class="card"><div class="title">V4 OUTPUT</div><pre id="v4Payload">Belum dihitung.</pre></div>
+</div></section>
+
+<section id="v5" class="page"><div class="grid">
+  <div class="card">
+    <div class="title">V5 · HISTORY & DATA EXPORT</div>
+    <div class="small muted">
+      Foto hanya digunakan sebagai sumber analisis. <b>Foto asli tidak disimpan</b> ke History,
+      localStorage, JSON, CSV, Excel, maupun Google Sheets. Yang disimpan hanya data hasil analisis.
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="saveBtn">💾 Simpan Data Analisis</button>
+      <button class="btn" id="exportBtn">⬇ Export JSON</button>
+      <button class="btn" id="excelBtn">⬇ Export CSV / Excel</button>
+      <button class="btn danger" id="deleteAll">Hapus Semua History</button>
+    </div>
+    <div class="notice" style="margin-top:12px">
+<b>Google Sheets Connector:</b> Spreadsheet ID sudah ditetapkan ke sheet kamu. Untuk keamanan, HTML tidak memakai password/token.
+Gunakan Apps Script Web App sebagai endpoint penerima.
+<details style="margin-top:8px">
+<summary><b>Tampilkan Apps Script siap pakai</b></summary>
+<pre id="appsScript" style="white-space:pre-wrap;max-height:360px;overflow:auto">const SPREADSHEET_ID = "1nwI_CpM_aGSFDasolbrUMJtuUdjx6RfF_fKP-rcy54M";
+const SHEET_NAME = "Input";
+
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents || "{}");
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+
+    if (body.type === "STEPM_IDX_TEST") {
+      return json({ok:true, type:"TEST", spreadsheetId:SPREADSHEET_ID, sheet:SHEET_NAME});
+    }
+
+    if (body.type !== "STEPM_IDX_HISTORY") {
+      return json({ok:false, error:"Unknown payload type"});
+    }
+
+    const records = Array.isArray(body.records) ? body.records : [];
+    if (!records.length) return json({ok:false, error:"No records"});
+
+    const headers = Object.keys(records[0]);
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1,1,1,headers.length).setValues([headers]);
+      sh.setFrozenRows(1);
+    }
+
+    // Append only the data fields. No image/file/blob is accepted.
+    const existingHeaders = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+    const finalHeaders = existingHeaders.length ? existingHeaders : headers;
+
+    const rows = records.map(r => finalHeaders.map(h => {
+      const v = r[h];
+      if (v === null || v === undefined) return "";
+      if (typeof v === "object") return JSON.stringify(v);
+      return v;
+    }));
+
+    sh.getRange(sh.getLastRow()+1,1,rows.length,finalHeaders.length).setValues(rows);
+    return json({ok:true, inserted:rows.length, sheet:SHEET_NAME, photosStored:false});
+  } catch (err) {
+    return json({ok:false, error:String(err)});
+  }
+}
+
+function doGet() {
+  return json({ok:true, service:"STEPM-IDX Google Sheets Connector", photosStored:false});
+}
+
+function json(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+<button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('appsScript').innerText).then(()=>alert('Apps Script disalin.'))">Salin Apps Script</button>
+</details>
+</div><div class="notice" style="margin-top:12px">
+      <b>Google Sheets:</b> masukkan URL Web App Google Apps Script di bawah. Data dikirim sebagai JSON
+      tanpa foto. Jika kosong, fitur kirim ke Sheets dinonaktifkan.
+    </div>
+    <label class="small muted">Google Sheets Web App URL</label>
+    <input id="sheetsUrl" type="url" value="https://script.google.com/macros/s/AKfycbw3iFTZXSyd9pQZPbfvAo9l_5BHOex2E-BbPLCTQrZWll1vbM6MVwSxjJjgjdQUEbf5YA/exec" placeholder="URL Google Sheets Web App">
+    <div class="row" style="margin-top:8px">
+      <button class="btn primary" id="sendSheets">☁ Kirim History ke Google Sheets</button>
+      <button class="btn" id="testSheets">Tes Koneksi</button>
+    </div>
+    <div class="small muted" style="margin-top:8px">Spreadsheet tujuan: <a href="https://docs.google.com/spreadsheets/d/1nwI_CpM_aGSFDasolbrUMJtuUdjx6RfF_fKP-rcy54M/edit" target="_blank">STEPM-IDX · Input</a></div><div id="sheetsStatus" class="small muted" style="margin-top:8px">URL Web App sudah tertanam. Klik Tes Koneksi.</div>
+    <div id="history" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">DATA YANG DISIMPAN</div>
+    <div class="kv"><b>Identity</b><span>Analysis ID, tanggal/waktu, jumlah foto, ticker jika terbaca</span></div>
+    <div class="kv"><b>Visual Evidence</b><span>Indikator, candle reversal, chart pattern, market structure</span></div>
+    <div class="kv"><b>Market Context</b><span>Support/resistance, volume, order book, multi-timeframe</span></div>
+    <div class="kv"><b>V3</b><span>Confluence, probability/status, scenarios, risk/reward</span></div>
+    <div class="kv"><b>V4</b><span>BUY area, Entry Mid, SL, TP1, TP2, R/R, invalidation</span></div>
+    <div class="kv"><b>AI</b><span>Reasoning/status dan catatan</span></div>
+    <div class="kv"><b>Original photos</b><span class="pill good">NOT STORED</span></div>
+  </div>
+
+  <div class="card">
+    <div class="title">DETAIL ANALISIS</div>
+    <div id="detail" class="empty">Pilih history untuk melihat detail.</div>
+  </div>
+</div></section>
+<div class="footer">STEPM-IDX V5 · Foto sebagai sumber utama · Foto tidak disimpan · Data hasil analisis dapat diekspor ke Excel / Google Sheets · Tidak terhubung ke live market feed</div>STEPM-IDX prototype · Foto sebagai sumber utama · Tidak terhubung ke live market feed</div>
+</div>
+
+<script>
+const DEFAULT_SHEETS_URL='https://script.google.com/macros/s/AKfycbw3iFTZXSyd9pQZPbfvAo9l_5BHOex2E-BbPLCTQrZWll1vbM6MVwSxjJjgjdQUEbf5YA/exec'; const state={files:[],scan:null,vision:null,history:JSON.parse(localStorage.getItem('stepm_history_data_only')||'[]'),sheetsUrl:localStorage.getItem('stepm_sheets_url')||DEFAULT_SHEETS_URL};
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function nav(page){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===page));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page))}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>nav(b.dataset.page));
+
+function addFiles(list){for(const f of list){if(!f.type.startsWith('image/'))continue;if(state.files.length>=10)break;state.files.push(f)}renderFiles()}
+function renderFiles(){ $('count').textContent=state.files.length+'/10'; $('thumbs').innerHTML='';state.files.forEach((f,i)=>{const u=URL.createObjectURL(f);const d=document.createElement('div');d.className='thumb';d.innerHTML='<img src="'+u+'"><span>Foto '+(i+1)+'</span><button title="hapus">×</button>';d.querySelector('button').onclick=()=>{state.files.splice(i,1);renderFiles()};$('thumbs').appendChild(d)});$('packageInfo').innerHTML=state.files.length?'<div class="kv"><b>Evidence package</b><span>'+state.files.length+' foto</span></div><div class="kv"><b>Status</b><span>Siap dipindai</span></div>':'Belum ada foto.'}
+$('files').onchange=e=>addFiles(e.target.files);
+const drop=$('drop');['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+$('clearBtn').onclick=()=>{state.files=[];state.scan=null;state.vision=null;renderFiles();$('scanBar').style.width='0';$('scanStatus').textContent='Menunggu foto.'};
+$('scanBtn').onclick=async()=>{if(!state.files.length){$('scanStatus').textContent='Tambahkan minimal 1 foto.';return}for(let p=0;p<=100;p+=20){$('scanBar').style.width=p+'%';$('scanStatus').textContent='Menyiapkan paket bukti '+p+'%';await new Promise(r=>setTimeout(r,80))}state.scan={createdAt:new Date().toISOString(),imageCount:state.files.length,source:'USER_UPLOAD'};renderAnalysis();$('scanStatus').textContent='Paket bukti siap untuk V2.';nav('v2')};
+
+function tags(arr){return arr.map(x=>'<span class="pill warn">'+x+'</span>').join('')}
+function visionStatusLabel(s){return s||'NOT_AVAILABLE'}
+function fmtList(arr){return Array.isArray(arr)&&arr.length?arr.map(x=>typeof x==='string'?x:(x.name||x.pattern||x.value||JSON.stringify(x))).join(' · '):'NOT_AVAILABLE'}
+function renderAnalysis(){
+  const n=state.files.length, d=state.vision;
+  const not='NOT_AVAILABLE', uncertain='UNCERTAIN';
+  if(d){
+    const c=d.chart_identity||{}, ind=d.indicators||{}, ms=d.market_structure||{}, rc=d.reversal_candles||{}, rp=d.reversal_chart_patterns||{}, mtf=d.multi_timeframe||{}, ob=d.order_book||{}, sr=d.support_resistance||{}, vol=d.volume||{}, q=d.evidence_quality||{};
+    $('identity').innerHTML='<div class="kv"><b>Foto package</b><span>'+n+' foto</span></div><div class="kv"><b>Ticker</b><span>'+esc(c.symbol||not)+'</span></div><div class="kv"><b>Timeframe</b><span>'+esc(fmtList(c.timeframes))+'</span></div><div class="kv"><b>Harga terlihat</b><span>'+esc(fmtList(c.prices))+'</span></div><div class="kv"><b>Vision status</b><span>'+esc(c.status||'VALIDATED_WITH_UNCERTAINTY')+'</span></div>';
+    $('indicators').innerHTML='<div class="small muted">Detected indicators</div>'+tags((ind.detected||[]).map(x=>x.name||String(x)))+'<div style="margin-top:8px">'+Object.entries(ind.values||{}).map(([k,v])=>'<div class="kv"><b>'+esc(k)+'</b><span>'+esc(typeof v==='object'?JSON.stringify(v):String(v))+'</span></div>').join('')+'</div>';
+    $('structure').innerHTML='<div class="kv"><b>Status</b><span>'+esc(ms.status||not)+'</span></div><div class="kv"><b>Trend</b><span>'+esc(ms.trend||not)+'</span></div><div class="kv"><b>Swings</b><span>'+esc(fmtList(ms.swings))+'</span></div><div class="kv"><b>BOS</b><span>'+esc(fmtList(ms.bos))+'</span></div><div class="kv"><b>CHOCH</b><span>'+esc(fmtList(ms.choch))+'</span></div>';
+    $('candlePatterns').innerHTML=tags((rc.detected||[]).map(x=>x.name||String(x)))+'<div class="small muted" style="margin-top:8px">'+esc(rc.status||not)+'</div>';
+    $('chartPatterns').innerHTML=tags((rp.detected||[]).map(x=>x.name||String(x)))+'<div class="small muted" style="margin-top:8px">'+esc(rp.status||not)+'</div>';
+    $('mtfbook').innerHTML='<div class="kv"><b>Timeframes</b><span>'+esc(fmtList(mtf.frames))+'</span></div><div class="kv"><b>Cross-timeframe</b><span>'+esc(mtf.confluence||uncertain)+'</span></div><div class="kv"><b>Order Book</b><span>'+esc(ob.status||not)+'</span></div><div class="kv"><b>Bid</b><span>'+esc(fmtList(ob.bid))+'</span></div><div class="kv"><b>Offer</b><span>'+esc(fmtList(ob.offer))+'</span></div>';
+    $('srvol').innerHTML='<div class="kv"><b>Support</b><span>'+esc(fmtList(sr.support))+'</span></div><div class="kv"><b>Resistance</b><span>'+esc(fmtList(sr.resistance))+'</span></div><div class="kv"><b>Volume</b><span>'+esc(vol.status||not)+'</span></div><div class="kv"><b>Volume behavior</b><span>'+esc(vol.behavior||not)+'</span></div><div class="kv"><b>Volume confirmation</b><span>'+esc(vol.confirmation||not)+'</span></div>';
+    $('evidenceQuality').innerHTML='<div class="kv"><b>Image count</b><span>'+n+'/10</span></div><div class="kv"><b>Vision</b><span>CONNECTED</span></div><div class="kv"><b>Overall evidence</b><span>'+esc(q.overall||not)+'</span></div><div class="kv"><b>Unknown policy</b><span>NOT_AVAILABLE</span></div><div class="kv"><b>Ambiguous policy</b><span>UNCERTAIN</span></div>';
+    $('v2Payload').textContent=JSON.stringify(d,null,2);
+  } else {
+    $('identity').innerHTML='<div class="kv"><b>Foto package</b><span>'+n+' foto</span></div><div class="kv"><b>Ticker</b><span>'+not+'</span></div><div class="kv"><b>Timeframe</b><span>Semua yang terlihat</span></div><div class="kv"><b>Harga</b><span>'+not+'</span></div>';
+    $('indicators').innerHTML=tags(['Trend','Moving Average','Momentum','Volume','Volatility','Oscillator','Support/Resistance','Custom / lainnya'])+'<div class="small muted" style="margin-top:8px">Jalankan Vision AI untuk membaca nama dan nilai indikator aktual.</div>';
+    $('structure').innerHTML=tags(['HH','HL','LH','LL','BOS','CHOCH','Trend','Range','Breakout','Breakdown','Retest'])+'<div class="small muted" style="margin-top:8px">Belum ada evidence visual tervalidasi.</div>';
+    $('candlePatterns').innerHTML=tags(['Single Candle','Double Candle','Triple Candle']); $('chartPatterns').innerHTML=tags(['Inverse H&S','Double Bottom','Triple Bottom','Falling Wedge','Rounding Bottom']);
+    $('mtfbook').innerHTML='<div class="kv"><b>Timeframe</b><span>Semua yang terlihat</span></div><div class="kv"><b>Cross-timeframe</b><span>'+uncertain+'</span></div><div class="kv"><b>Order Book</b><span>'+not+'</span></div><div class="kv"><b>Bid / Offer</b><span>'+not+'</span></div>';
+    $('srvol').innerHTML='<div class="kv"><b>Support</b><span>'+not+'</span></div><div class="kv"><b>Resistance</b><span>'+not+'</span></div><div class="kv"><b>Volume behavior</b><span>'+uncertain+'</span></div><div class="kv"><b>Volume confirmation</b><span>'+not+'</span></div>';
+    $('evidenceQuality').innerHTML='<div class="kv"><b>Image count</b><span>'+n+'/10</span></div><div class="kv"><b>Visual evidence</b><span>READY_FOR_VISION</span></div><div class="kv"><b>External feed</b><span>OFF</span></div>';
+    $('v2Payload').textContent='Belum ada evidence yang diproses.';
+  }
+  renderV3();
+}
+function getV2Evidence(){
+  const d=state.vision;
+  if(!d)return {indicators:{status:'NOT_AVAILABLE',validated:false},candles:{status:'NOT_AVAILABLE',validated:false},chartPatterns:{status:'NOT_AVAILABLE',validated:false},marketStructure:{status:'NOT_AVAILABLE',validated:false},volume:{status:'NOT_AVAILABLE',validated:false},orderBook:{status:'NOT_AVAILABLE',validated:false},multiTimeframe:{status:'UNCERTAIN',validated:false}};
+  const s=k=>{const x=d[k]||{}; const st=x.status||'UNCERTAIN'; return {status:st==='VALIDATED'?'VALIDATED':st==='UNCERTAIN'?'UNCERTAIN':'NOT_AVAILABLE',validated:st==='VALIDATED'};};
+  return {indicators:s('indicators'),candles:s('reversal_candles'),chartPatterns:s('reversal_chart_patterns'),marketStructure:s('market_structure'),volume:s('volume'),orderBook:s('order_book'),multiTimeframe:s('multi_timeframe')};
+}
+async function analyzeVision(){
+  if(!state.files.length){$('visionMessage').textContent='Tambahkan minimal 1 screenshot di V1 terlebih dahulu.';nav('v1');return;}
+  const btn=$('visionAnalyzeBtn'); btn.disabled=true; $('visionStatus').textContent='VISION: ANALYZING'; $('visionMessage').textContent='Mengirim paket '+state.files.length+' foto ke Vision Engine…';
+  try{
+    const images=await Promise.all(state.files.map(file=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:file.name,mimeType:file.type||'image/jpeg',dataUrl:r.result});r.onerror=reject;r.readAsDataURL(file)})));
+    const res=await fetch('http://localhost:8787/api/vision/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images})});
+    const data=await res.json(); if(!res.ok)throw new Error(data.error||'Vision request gagal');
+    state.vision=data; state.scan={...(state.scan||{}),visionAt:new Date().toISOString(),visionStatus:'COMPLETED'};
+    $('visionStatus').textContent='VISION: CONNECTED'; $('visionMessage').textContent='Vision AI selesai. Hasil disimpan hanya di sesi browser dan akan diteruskan ke V3.'; renderAnalysis();
+  }catch(e){state.vision=null;$('visionStatus').textContent='VISION: ERROR';$('visionMessage').textContent='Gagal: '+e.message+' — pastikan backend Vision Engine berjalan.';renderAnalysis();}
+  finally{btn.disabled=false}
+}
+$('visionAnalyzeBtn').onclick=analyzeVision;
+
+const v3Weights={indicators:20,candles:15,chartPatterns:15,marketStructure:20,volume:10,orderBook:10,multiTimeframe:10};
+function renderV3(){
+  const ev=getV2Evidence();
+  const rows=[
+    ['Indicators',ev.indicators.status,v3Weights.indicators],['Candle reversal',ev.candles.status,v3Weights.candles],['Chart pattern',ev.chartPatterns.status,v3Weights.chartPatterns],
+    ['Market structure',ev.marketStructure.status,v3Weights.marketStructure],['Volume',ev.volume.status,v3Weights.volume],['Order book',ev.orderBook.status,v3Weights.orderBook],['Multi-timeframe',ev.multiTimeframe.status,v3Weights.multiTimeframe]
+  ];
+  $('evidence').innerHTML='<tr><th>Evidence</th><th>Status</th><th>Weight</th></tr>'+rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'%</td></tr>').join('');
+  const score=rows.reduce((a,r)=>a+(r[1]==='VALIDATED'?r[2]:0),0);
+  $('score').textContent=score+'%'; $('scorebar').style.width=score+'%';
+  $('scoreText').textContent=score===0?'INSUFFICIENT_VALIDATED_EVIDENCE — belum ada evidence visual tervalidasi.':'Skor dihitung hanya dari evidence berstatus VALIDATED.';
+  $('scoreBreakdown').innerHTML=rows.map(r=>'<div class="kv"><b>'+r[0]+'</b><span>'+r[1]+' · '+(r[1]==='VALIDATED'?r[2]:'0')+' poin</span></div>').join('');
+  $('scenarios').innerHTML=
+    '<div class="scenario goodline"><b>Bullish scenario</b><br><span class="muted">Terpicu hanya jika evidence bullish tervalidasi dan kondisi konfirmasi terpenuhi. Saat ini: belum dapat disimpulkan.</span></div>'+
+    '<div class="scenario"><b>Base / continuation scenario</b><br><span class="muted">Memerlukan struktur dan timeframe yang konsisten. Saat ini: belum dapat disimpulkan.</span></div>'+
+    '<div class="scenario dangerline"><b>Bearish / invalidation scenario</b><br><span class="muted">Dipertimbangkan bila struktur kehilangan support/konfirmasi atau evidence berlawanan tervalidasi.</span></div>';
+  updateProbability(); updateV3RiskReward(); updateV3Payload();
+}
+function updateProbability(){
+  const n=Number($('probN').value), wins=Number($('probWins').value), setup=$('probSetup').value.trim(), horizon=$('probHorizon').value.trim(), costs=$('probCosts').value.trim(), cal=$('probCalibration').value;
+  const valid=setup && horizon && n>0 && wins>=0 && wins<=n && costs && (cal==='CALIBRATED'||cal==='VALIDATED_OOS');
+  if(valid){const p=wins/n; $('probability').innerHTML='Probabilitas empiris: <b>'+(p*100).toFixed(2)+'%</b><br><span class="muted small">'+wins+' kemenangan / '+n+' sampel · horizon '+esc(horizon)+' · '+esc(cal)+'</span>';}else{$('probability').innerHTML='Probabilitas statistik: <b>NOT_AVAILABLE</b><br><span class="muted small">Syarat belum lengkap: setup, outcome sample, horizon, costs, dan status calibration harus valid.</span>';}
+}
+['probN','probWins','probSetup','probHorizon','probCosts','probCalibration'].forEach(id=>$(id).addEventListener('input',updateProbability));
+$('calcProb').onclick=()=>{updateProbability();updateV3Payload()};
+function updateV3RiskReward(){
+  const lo=Number($('buyLow').value), hi=Number($('buyHigh').value), sl=Number($('sl').value), tp1=Number($('tp1').value);
+  if([lo,hi,sl,tp1].every(Number.isFinite)&&hi>lo){const entry=(lo+hi)/2,risk=entry-sl,reward=tp1-entry;if(risk>0&&reward>=0){$('v3risk').textContent=risk.toFixed(2);$('v3reward').textContent=reward.toFixed(2);$('v3rr').textContent=(reward/risk).toFixed(2)+'R';$('v3rrStatus').textContent='CALCULATED';return;}}
+  $('v3risk').textContent='NOT_AVAILABLE';$('v3reward').textContent='NOT_AVAILABLE';$('v3rr').textContent='NOT_AVAILABLE';$('v3rrStatus').textContent='NOT_AVAILABLE';
+}
+['buyLow','buyHigh','sl','tp1'].forEach(id=>$(id).addEventListener('input',()=>{updateV3RiskReward();updateV3Payload();updateV4();}));
+$('tp2').addEventListener('input',()=>{updateV4();updateV3Payload()});
+function updateV4(){
+  const lo=Number($('buyLow').value),hi=Number($('buyHigh').value),sl=Number($('sl').value),tp1=Number($('tp1').value),tp2=Number($('tp2').value);
+  const valid=[lo,hi,sl].every(Number.isFinite)&&hi>lo&&sl<lo;
+  if(!valid){['entryMid','v4risk','v4reward1','v4reward2','rr1','rr2'].forEach(id=>$(id).textContent='NOT_AVAILABLE');$('v4Status').textContent='INVALID_OR_INCOMPLETE_LEVELS';$('v4Payload').textContent=JSON.stringify(buildV4Object(),null,2);return;}
+  const entry=(lo+hi)/2,risk=entry-sl;
+  const r1=Number.isFinite(tp1)&&tp1>entry?tp1-entry:null;
+  const r2=Number.isFinite(tp2)&&tp2>entry?tp2-entry:null;
+  $('entryMid').textContent=entry.toFixed(2);$('v4risk').textContent=risk.toFixed(2);
+  $('v4reward1').textContent=r1===null?'NOT_AVAILABLE':r1.toFixed(2);$('v4reward2').textContent=r2===null?'NOT_AVAILABLE':r2.toFixed(2);
+  $('rr1').textContent=r1===null?'NOT_AVAILABLE':(r1/risk).toFixed(2)+'R';$('rr2').textContent=r2===null?'NOT_AVAILABLE':(r2/risk).toFixed(2)+'R';
+  $('v4Status').textContent='CALCULATED_FROM_ENTERED_LEVELS';$('v4Payload').textContent=JSON.stringify(buildV4Object(),null,2);
+}
+function buildV4Object(){
+  const lo=$('buyLow').value,hi=$('buyHigh').value,sl=$('sl').value,tp1=$('tp1').value,tp2=$('tp2').value;
+  return {version:'STEPM-IDX-V4',status:$('v4Status').textContent,buyArea:(lo&&hi)?{low:Number(lo),high:Number(hi)}:'NOT_AVAILABLE',entryMid:$('entryMid').textContent,sl:sl?Number(sl):'NOT_AVAILABLE',tp1:tp1?Number(tp1):'NOT_AVAILABLE',tp2:tp2?Number(tp2):'NOT_AVAILABLE',riskPerUnit:$('v4risk').textContent,rewardTP1:$('v4reward1').textContent,rewardTP2:$('v4reward2').textContent,rrTP1:$('rr1').textContent,rrTP2:$('rr2').textContent,setupConditions:$('setupConditions').value.trim()||'NOT_AVAILABLE',invalidation:$('invalidation').value.trim()||'NOT_AVAILABLE',aiNote:$('aiNote').value.trim()||'NOT_AVAILABLE',source:'V3_EVIDENCE_PLUS_EXPLICIT_LEVEL_INPUT'};
+}
+function buildV3Object(){
+  const n=Number($('probN').value),wins=Number($('probWins').value),setup=$('probSetup').value.trim(),horizon=$('probHorizon').value.trim(),costs=$('probCosts').value.trim(),cal=$('probCalibration').value;
+  const probReady=setup&&horizon&&costs&&n>0&&wins>=0&&wins<=n&&(cal==='CALIBRATED'||cal==='VALIDATED_OOS');
+  return {version:'STEPM-IDX-V3',evidence:getV2Evidence(),reasoning:{status:$('aiReasoning').value.trim()?'USER_SUPPLIED_AI_REASONING':'AI_ADAPTER_NOT_CONNECTED',summary:$('aiReasoning').value.trim()||'NOT_AVAILABLE'},confluence:{score:Number($('score').textContent.replace('%',''))||0,status:Number($('score').textContent.replace('%',''))>0?'CALCULATED':'INSUFFICIENT_VALIDATED_EVIDENCE',weights:v3Weights},probability:{value:probReady?wins/n:null,status:probReady?'CALCULATED':'NOT_AVAILABLE',reason:probReady?'EMPIRICAL_SAMPLE':'NO_VALID_CALIBRATED_SAMPLE',sampleSize:probReady?n:null,wins:probReady?wins:null,setup:setup||'NOT_AVAILABLE',horizon:horizon||'NOT_AVAILABLE',costs:costs||'NOT_AVAILABLE',calibration:cal},scenarios:[{name:'BULLISH',status:'CONDITION_DEPENDENT'},{name:'BASE',status:'CONDITION_DEPENDENT'},{name:'BEARISH',status:'CONDITION_DEPENDENT'}],riskReward:{status:$('v3rrStatus').textContent,value:$('v3rr').textContent}};
+}
+function updateV3Payload(){$('v3Payload').textContent=JSON.stringify(buildV3Object(),null,2)}
+$('sendV3ToV4').onclick=()=>{nav('v4');$('aiNote').value=$('aiReasoning').value.trim()||'V3 reasoning belum tersedia.';$('invalidation').value='V3 invalidation: gunakan kondisi yang membatalkan struktur/evidence tervalidasi. Probability: '+($('probability').innerText||'NOT_AVAILABLE').replace(/\n/g,' ');updateV4();};
+['setupConditions','invalidation','aiNote'].forEach(id=>$(id).addEventListener('input',updateV4));
+function getVisualData(){ return state.vision || {chart_identity:{symbol:'NOT_AVAILABLE',timeframes:[],prices:[]},indicators:{status:'NOT_AVAILABLE',detected:[]},reversal_candles:{status:'NOT_AVAILABLE',detected:[]},reversal_chart_patterns:{status:'NOT_AVAILABLE',detected:[]},market_structure:{status:'NOT_AVAILABLE'},support_resistance:{status:'NOT_AVAILABLE'},volume:{status:'NOT_AVAILABLE'},order_book:{status:'NOT_AVAILABLE'},multi_timeframe:{status:'UNCERTAIN'}}; }
+function collect(){
+  // IMPORTANT: this object intentionally contains NO File/Blob/ObjectURL/image data.
+  return {
+    analysisId:'AN-'+Date.now(),
+    createdAt:new Date().toISOString(),
+    imageCount:state.files.length,
+    source:'USER_UPLOAD_SCREENSHOTS',
+    photosStored:false,
+    visual:getVisualData(),
+    v3:buildV3Object(),
+    v4:buildV4Object(),
+    analysis:{
+      probability:$('probability').innerText||'NOT_AVAILABLE',
+      buy:$('buyLow').value&&$('buyHigh').value?[Number($('buyLow').value),Number($('buyHigh').value)]:'NOT_AVAILABLE',
+      sl:$('sl').value?Number($('sl').value):'NOT_AVAILABLE',
+      tp1:$('tp1').value?Number($('tp1').value):'NOT_AVAILABLE',
+      tp2:$('tp2').value?Number($('tp2').value):'NOT_AVAILABLE',
+      riskReward:$('rr1').textContent||'NOT_AVAILABLE',
+      notes:$('aiNote').value||'NOT_AVAILABLE'
+    },
+    invalidation:$('invalidation').value||'NOT_AVAILABLE',
+    setupConditions:$('setupConditions').value||'NOT_AVAILABLE'
+  };
+}
+function saveHistory(){
+  if(!state.files.length){alert('Upload minimal 1 foto terlebih dahulu.');return}
+  const x=collect();
+  state.history.unshift(x);
+  localStorage.setItem('stepm_history_data_only',JSON.stringify(state.history));
+  renderHistory();
+  alert('Data analisis tersimpan. Foto asli tidak disimpan.');
+}
+$('saveBtn').onclick=saveHistory;
+
+function renderHistory(){
+  if(!state.history.length){
+    $('history').innerHTML='<div class="empty">Belum ada history.</div>'; return;
+  }
+  $('history').innerHTML=state.history.map((x,i)=>{
+    const buy=x.analysis.buy==='NOT_AVAILABLE'?'BUY NOT_AVAILABLE':x.analysis.buy.join(' – ');
+    return '<div class="history-item"><div class="row" style="justify-content:space-between"><b>'+esc(x.analysisId)+'</b><span class="small muted">'+new Date(x.createdAt).toLocaleString('id-ID')+'</span></div>'+
+      '<div class="small muted" style="margin:6px 0">'+esc(String(buy))+' · '+x.imageCount+' foto input · foto tersimpan: TIDAK</div>'+
+      '<button class="btn" onclick="showDetail('+i+')">Lihat Data</button></div>';
+  }).join('');
+}
+window.showDetail=i=>{
+  const x=state.history[i];
+  $('detail').innerHTML=
+    '<div class="kv"><b>ID</b><span>'+esc(x.analysisId)+'</span></div>'+
+    '<div class="kv"><b>Waktu</b><span>'+esc(new Date(x.createdAt).toLocaleString('id-ID'))+'</span></div>'+
+    '<div class="kv"><b>Foto input</b><span>'+esc(x.imageCount)+'</span></div>'+
+    '<div class="kv"><b>Foto disimpan</b><span>❌ TIDAK</span></div>'+
+    '<div class="kv"><b>Probability</b><span>'+esc(x.analysis.probability)+'</span></div>'+
+    '<div class="kv"><b>BUY</b><span>'+esc(JSON.stringify(x.analysis.buy))+'</span></div>'+
+    '<div class="kv"><b>TP1 / TP2</b><span>'+esc(x.analysis.tp1)+' / '+esc(x.analysis.tp2)+'</span></div>'+
+    '<div class="kv"><b>SL</b><span>'+esc(x.analysis.sl)+'</span></div>'+
+    '<div class="kv"><b>R/R</b><span>'+esc(x.analysis.riskReward)+'</span></div>'+
+    '<div class="kv"><b>Invalidation</b><span>'+esc(x.invalidation)+'</span></div>'+
+    '<div class="kv"><b>Setup</b><span>'+esc(x.setupConditions)+'</span></div>'+
+    '<div class="kv"><b>Notes</b><span>'+esc(x.analysis.notes)+'</span></div>';
+};
+$('deleteAll').onclick=()=>{
+  if(confirm('Hapus semua history data?')){
+    state.history=[];localStorage.removeItem('stepm_history_data_only');
+    renderHistory();$('detail').innerHTML='<div class="empty">History kosong.</div>';
+  }
+};
+
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+function flattenRecord(x){
+  const buy=x.analysis.buy==='NOT_AVAILABLE'?'NOT_AVAILABLE':x.analysis.buy.join(' - ');
+  const p=x.v3?.probability||{};
+  const c=x.v3?.confluence||{};
+  return {
+    analysisId:x.analysisId,createdAt:x.createdAt,imageCount:x.imageCount,photosStored:false,
+    ticker:'NOT_AVAILABLE',timeframes:'ALL_VISIBLE',
+    indicatorStatus:x.visual?.indicators?.status||'NOT_AVAILABLE',
+    candleReversalStatus:x.visual?.reversalCandles?.status||'NOT_AVAILABLE',
+    chartPatternStatus:x.visual?.reversalChartPatterns?.status||'NOT_AVAILABLE',
+    marketStructureStatus:x.visual?.marketStructure?.status||'NOT_AVAILABLE',
+    supportResistanceStatus:x.visual?.supportResistance?.status||'NOT_AVAILABLE',
+    volumeStatus:x.visual?.volume?.status||'NOT_AVAILABLE',
+    orderBookStatus:x.visual?.orderBook?.status||'NOT_AVAILABLE',
+    multiTimeframeStatus:x.visual?.multiTimeframe?.status||'NOT_AVAILABLE',
+    confluenceScore:c.score??'NOT_AVAILABLE',confluenceStatus:c.status??'NOT_AVAILABLE',
+    probability:p.value==null?'NOT_AVAILABLE':(p.value*100).toFixed(2)+'%',
+    probabilityStatus:p.status??'NOT_AVAILABLE',probabilityReason:p.reason??'NOT_AVAILABLE',
+    sampleSize:p.sampleSize??'NOT_AVAILABLE',wins:p.wins??'NOT_AVAILABLE',
+    buyArea:buy,entryMid:x.v4?.entryMid??'NOT_AVAILABLE',sl:x.analysis.sl,
+    tp1:x.analysis.tp1,tp2:x.analysis.tp2,riskPerUnit:x.v4?.riskPerUnit??'NOT_AVAILABLE',
+    rrTP1:x.v4?.rrTP1??'NOT_AVAILABLE',rrTP2:x.v4?.rrTP2??'NOT_AVAILABLE',
+    v4Status:x.v4?.status??'NOT_AVAILABLE',setupConditions:x.setupConditions,
+    invalidation:x.invalidation,aiReasoning:x.v3?.reasoning?.summary??'NOT_AVAILABLE',
+    aiStatus:x.v3?.reasoning?.status??'NOT_AVAILABLE',notes:x.analysis.notes
+  };
+}
+$('exportBtn').onclick=()=>{
+  download('stepm-history-data-only.json',JSON.stringify(state.history,null,2),'application/json');
+};
+$('excelBtn').onclick=()=>{
+  const rows=state.history.map(flattenRecord);
+  if(!rows.length){alert('Belum ada history.');return}
+  const head=Object.keys(rows[0]);
+  const lines=[head.map(csvCell).join(',')];
+  rows.forEach(r=>lines.push(head.map(k=>csvCell(r[k])).join(',')));
+  download('stepm-history-data-only.csv','\ufeff'+lines.join('\n'),'text/csv;charset=utf-8');
+};
+
+$('sheetsUrl').value=state.sheetsUrl;
+$('sheetsUrl').addEventListener('change',()=>{
+  state.sheetsUrl=$('sheetsUrl').value.trim();
+  localStorage.setItem('stepm_sheets_url',state.sheetsUrl);
+});
+async function postToSheets(testOnly=false){
+  const url=$('sheetsUrl').value.trim();
+  if(!url){$('sheetsStatus').textContent='Masukkan URL Google Sheets Web App terlebih dahulu.';return}
+  localStorage.setItem('stepm_sheets_url',url);
+  try{
+    $('sheetsStatus').textContent=testOnly?'Menguji koneksi...':'Mengirim data...';
+    const payload=testOnly
+      ? {type:'STEPM_IDX_TEST',sentAt:new Date().toISOString(),photosStored:false}
+      : {type:'STEPM_IDX_HISTORY',records:state.history.map(flattenRecord),photosStored:false};
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),redirect:'follow'});
+    const txt=await res.text();
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    $('sheetsStatus').textContent=(testOnly?'Tes berhasil. ':'Data berhasil dikirim. ')+(txt||'Google Sheets menerima request.');
+  }catch(err){
+    $('sheetsStatus').textContent='Gagal mengirim: '+err.message;
+  }
+}
+$('sendSheets').onclick=()=>postToSheets(false);
+$('testSheets').onclick=()=>postToSheets(true);
+
+function download(name,data,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([data],{type}));
+  a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+
+renderFiles();renderHistory(); updateV4();
+</script>
+</body>
+</html>
