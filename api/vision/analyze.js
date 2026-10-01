@@ -5,6 +5,7 @@ const MODEL = process.env.OPENAI_VISION_MODEL || "gpt-5.6-luna";
 const schema = {
   type: "object",
   additionalProperties: false,
+
   properties: {
     chart_identity: {
       type: "object",
@@ -21,7 +22,12 @@ const schema = {
         },
         status: { type: "string" }
       },
-      required: ["symbol", "timeframes", "prices", "status"]
+      required: [
+        "symbol",
+        "timeframes",
+        "prices",
+        "status"
+      ]
     },
 
     indicators: {
@@ -51,15 +57,34 @@ const schema = {
             ]
           }
         },
+
         values: {
-          type: "object",
-          additionalProperties: {
-            type: "string"
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              name: { type: "string" },
+              value: { type: "string" },
+              timeframe: { type: "string" },
+              status: { type: "string" }
+            },
+            required: [
+              "name",
+              "value",
+              "timeframe",
+              "status"
+            ]
           }
         },
+
         status: { type: "string" }
       },
-      required: ["detected", "values", "status"]
+      required: [
+        "detected",
+        "values",
+        "status"
+      ]
     },
 
     reversal_candles: {
@@ -87,9 +112,13 @@ const schema = {
             ]
           }
         },
+
         status: { type: "string" }
       },
-      required: ["detected", "status"]
+      required: [
+        "detected",
+        "status"
+      ]
     },
 
     reversal_chart_patterns: {
@@ -117,9 +146,13 @@ const schema = {
             ]
           }
         },
+
         status: { type: "string" }
       },
-      required: ["detected", "status"]
+      required: [
+        "detected",
+        "status"
+      ]
     },
 
     market_structure: {
@@ -127,21 +160,31 @@ const schema = {
       additionalProperties: false,
       properties: {
         trend: { type: "string" },
+
         swings: {
           type: "array",
           items: { type: "string" }
         },
+
         bos: {
           type: "array",
           items: { type: "string" }
         },
+
         choch: {
           type: "array",
           items: { type: "string" }
         },
+
         status: { type: "string" }
       },
-      required: ["trend", "swings", "bos", "choch", "status"]
+      required: [
+        "trend",
+        "swings",
+        "bos",
+        "choch",
+        "status"
+      ]
     },
 
     support_resistance: {
@@ -152,13 +195,19 @@ const schema = {
           type: "array",
           items: { type: "string" }
         },
+
         resistance: {
           type: "array",
           items: { type: "string" }
         },
+
         status: { type: "string" }
       },
-      required: ["support", "resistance", "status"]
+      required: [
+        "support",
+        "resistance",
+        "status"
+      ]
     },
 
     volume: {
@@ -169,7 +218,11 @@ const schema = {
         behavior: { type: "string" },
         confirmation: { type: "string" }
       },
-      required: ["status", "behavior", "confirmation"]
+      required: [
+        "status",
+        "behavior",
+        "confirmation"
+      ]
     },
 
     order_book: {
@@ -177,17 +230,25 @@ const schema = {
       additionalProperties: false,
       properties: {
         status: { type: "string" },
+
         bid: {
           type: "array",
           items: { type: "string" }
         },
+
         offer: {
           type: "array",
           items: { type: "string" }
         },
+
         notes: { type: "string" }
       },
-      required: ["status", "bid", "offer", "notes"]
+      required: [
+        "status",
+        "bid",
+        "offer",
+        "notes"
+      ]
     },
 
     multi_timeframe: {
@@ -198,14 +259,22 @@ const schema = {
           type: "array",
           items: { type: "string" }
         },
+
         confluence: { type: "string" },
+
         conflicts: {
           type: "array",
           items: { type: "string" }
         },
+
         status: { type: "string" }
       },
-      required: ["frames", "confluence", "conflicts", "status"]
+      required: [
+        "frames",
+        "confluence",
+        "conflicts",
+        "status"
+      ]
     },
 
     evidence_quality: {
@@ -213,16 +282,22 @@ const schema = {
       additionalProperties: false,
       properties: {
         overall: { type: "string" },
+
         ambiguous: {
           type: "array",
           items: { type: "string" }
         },
+
         missing: {
           type: "array",
           items: { type: "string" }
         }
       },
-      required: ["overall", "ambiguous", "missing"]
+      required: [
+        "overall",
+        "ambiguous",
+        "missing"
+      ]
     }
   },
 
@@ -240,10 +315,13 @@ const schema = {
   ]
 };
 
+
 const instructions = `
 Kamu adalah STEPM-IDX V2 Vision Engine.
 
 Analisis 1-10 screenshot TradingView sebagai SATU evidence package.
+
+Screenshot adalah sumber bukti utama.
 
 Baca semua informasi visual yang benar-benar terlihat:
 
@@ -294,13 +372,32 @@ ATURAN WAJIB:
 14. Jangan membuat harga yang tidak terlihat.
 15. Jangan membuat order book yang tidak terlihat.
 16. Jangan menyimpan foto pada aplikasi.
+
+Untuk indicators.values gunakan array.
+Setiap item values harus memiliki:
+- name
+- value
+- timeframe
+- status
+
+Jika nilai indikator tidak terlihat:
+value = NOT_AVAILABLE
+
+Jika nama indikator tidak dapat dibaca:
+name = NOT_AVAILABLE
+
+Jika timeframe tidak dapat diketahui:
+timeframe = NOT_AVAILABLE
 `;
+
 
 function sendJSON(res, status, data) {
   return res.status(status).json(data);
 }
 
+
 export default async function handler(req, res) {
+
   if (req.method === "GET") {
     return sendJSON(res, 200, {
       ok: Boolean(process.env.OPENAI_API_KEY),
@@ -308,6 +405,7 @@ export default async function handler(req, res) {
       photosPersisted: false
     });
   }
+
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "GET, POST");
@@ -317,6 +415,7 @@ export default async function handler(req, res) {
     });
   }
 
+
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
@@ -325,15 +424,19 @@ export default async function handler(req, res) {
     });
   }
 
+
   try {
+
     const body =
       typeof req.body === "string"
         ? JSON.parse(req.body || "{}")
         : req.body || {};
 
+
     const images = Array.isArray(body.images)
       ? body.images
       : [];
+
 
     if (images.length < 1 || images.length > 10) {
       return sendJSON(res, 400, {
@@ -341,12 +444,15 @@ export default async function handler(req, res) {
       });
     }
 
+
     for (const image of images) {
+
       if (!image?.dataUrl?.startsWith("data:image/")) {
         return sendJSON(res, 400, {
           error: "Semua input harus berupa data URL gambar."
         });
       }
+
 
       if (image.dataUrl.length > 3000000) {
         return sendJSON(res, 413, {
@@ -355,13 +461,17 @@ export default async function handler(req, res) {
       }
     }
 
+
     const client = new OpenAI({
       apiKey
     });
 
+
     const content = [
+
       {
         type: "input_text",
+
         text:
           instructions +
           `
@@ -375,10 +485,14 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
         image_url: image.dataUrl,
         detail: "high"
       }))
+
     ];
 
+
     const response = await client.responses.create({
+
       model: MODEL,
+
       store: false,
 
       input: [
@@ -392,9 +506,12 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
         format: {
           type: "json_schema",
           name: "stepm_idx_v2_visual_evidence",
+
           description:
             "Structured visual evidence for STEPM-IDX V2",
+
           strict: true,
+
           schema
         }
       },
@@ -402,32 +519,50 @@ Nomor foto harus dipertahankan secara konsisten pada evidence.`
       max_output_tokens: 12000
     });
 
+
     let result;
 
     try {
+
       result = JSON.parse(response.output_text);
+
     } catch {
+
       throw new Error(
         "Vision Engine mengembalikan JSON tidak valid."
       );
+
     }
 
+
     result.meta = {
+
       version: "STEPM-IDX-V2-VISION",
+
       model: MODEL,
+
       imageCount: images.length,
+
       liveFeed: false,
+
       photosPersistedByApp: false,
+
       analyzedAt: new Date().toISOString()
+
     };
+
 
     return sendJSON(res, 200, result);
 
+
   } catch (error) {
+
     console.error(error);
 
     return sendJSON(res, 500, {
       error: error?.message || String(error)
     });
+
   }
+
 }
