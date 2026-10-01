@@ -358,7 +358,7 @@ async function analyzeVision(){
   const btn=$('visionAnalyzeBtn'); btn.disabled=true; $('visionStatus').textContent='VISION: ANALYZING'; $('visionMessage').textContent='Mengirim paket '+state.files.length+' foto ke Vision Engine…';
   try{
     const images=await Promise.all(state.files.map(file=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:file.name,mimeType:file.type||'image/jpeg',dataUrl:r.result});r.onerror=reject;r.readAsDataURL(file)})));
-    const res=await fetch('http://localhost:8787/api/vision/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images})});
+    const res=await fetch('/api/vision/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images})});
     const data=await res.json(); if(!res.ok)throw new Error(data.error||'Vision request gagal');
     state.vision=data; state.scan={...(state.scan||{}),visionAt:new Date().toISOString(),visionStatus:'COMPLETED'};
     $('visionStatus').textContent='VISION: CONNECTED'; $('visionMessage').textContent='Vision AI selesai. Hasil disimpan hanya di sesi browser dan akan diteruskan ke V3.'; renderAnalysis();
