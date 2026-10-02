@@ -132,7 +132,7 @@ button,input,select{font:inherit}button{cursor:pointer}.app{max-width:1450px;mar
   </div>
   <div class="card half">
     <div class="title">03 · AI REASONING ADAPTER</div>
-    <div class="kv"><b>Status</b><span id="aiStatus">AI_ADAPTER_NOT_CONNECTED</span></div>
+    <div class="kv"><b>Status</b><span id="aiStatus">AI_ADAPTER_NOT_CONNECTED</span></div><div class="row" style="margin-top:8px"><button class="btn primary" id="reasonBtn">🧠 Jalankan AI Reasoning V3</button><span class="small muted" id="reasonMessage">Kirim evidence V2 ke Gemini Reasoning.</span></div>
     <textarea id="aiReasoning" rows="6" placeholder="Tempat hasil reasoning AI berbasis evidence V2. Jangan mengisi dengan asumsi yang tidak terlihat pada foto."></textarea>
     <div class="small muted" style="margin-top:6px">Standalone HTML tidak menyimpan API key. Adapter backend/AI Vision dapat dihubungkan di titik ini.</div>
   </div>
@@ -305,7 +305,7 @@ function json(obj) {
 </div>
 
 <script>
-const DEFAULT_SHEETS_URL='https://script.google.com/macros/s/AKfycbw3iFTZXSyd9pQZPbfvAo9l_5BHOex2E-BbPLCTQrZWll1vbM6MVwSxjJjgjdQUEbf5YA/exec'; const state={files:[],scan:null,vision:null,history:JSON.parse(localStorage.getItem('stepm_history_data_only')||'[]'),sheetsUrl:localStorage.getItem('stepm_sheets_url')||DEFAULT_SHEETS_URL};
+const DEFAULT_SHEETS_URL='https://script.google.com/macros/s/AKfycbw3iFTZXSyd9pQZPbfvAo9l_5BHOex2E-BbPLCTQrZWll1vbM6MVwSxjJjgjdQUEbf5YA/exec'; const state={files:[],scan:null,vision:null,v3Reasoning:null,history:JSON.parse(localStorage.getItem('stepm_history_data_only')||'[]'),sheetsUrl:localStorage.getItem('stepm_sheets_url')||DEFAULT_SHEETS_URL};
 const $=id=>document.getElementById(id);
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function nav(page){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===page));document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page))}
@@ -422,44 +422,41 @@ function buildV3Object(){
 }
 function updateV3Payload(){$('v3Payload').textContent=JSON.stringify(buildV3Object(),null,2)}
   async function runV3Reasoning(){
-  const status = $('#aiStatus');
-  const output = $('#aiReasoning');
-
-  status.textContent = 'AI_REASONING_ANALYZING';
-  output.value = 'Gemini sedang menganalisis evidence V2...';
-
-  try {
-    const response = await fetch('/api/vision/reasoning', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        v2: getVisualData()
-      })
+  if(!state.vision){
+    $('aiStatus').textContent='V2_EVIDENCE_NOT_AVAILABLE';
+    $('reasonMessage').textContent='Jalankan Vision AI di V2 terlebih dahulu.';
+    nav('v2');
+    return;
+  }
+  const btn=$('reasonBtn');
+  btn.disabled=true;
+  $('aiStatus').textContent='AI_REASONING_ANALYZING';
+  $('reasonMessage').textContent='Mengirim evidence V2 ke Gemini Reasoning…';
+  try{
+    const response=await fetch('/api/vision/reasoning',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({v2:getVisualData()})
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'V3 Reasoning gagal.');
-    }
-
-    state.v3Reasoning = data;
-
-    status.textContent = 'AI_REASONING_CONNECTED';
-
-    output.value =
-      data.summary ||
-      'Reasoning V3 selesai.';
-
+    const data=await response.json();
+    if(!response.ok) throw new Error(data.error||'V3 Reasoning gagal.');
+    state.v3Reasoning=data;
+    $('aiStatus').textContent='AI_REASONING_CONNECTED';
+    $('aiReasoning').value=data.summary||'Reasoning V3 selesai.';
+    $('reasonMessage').textContent='AI reasoning selesai dan hasilnya masuk ke V3.';
+    renderV3();
     updateV3Payload();
-
-  } catch (error) {
-    status.textContent = 'AI_REASONING_ERROR';
-    output.value = error.message || String(error);
+  }catch(error){
+    state.v3Reasoning=null;
+    $('aiStatus').textContent='AI_REASONING_ERROR';
+    $('reasonMessage').textContent='Gagal: '+(error.message||String(error));
+    updateV3Payload();
+  }finally{
+    btn.disabled=false;
   }
 }
+$('reasonBtn').onclick=runV3Reasoning;
+
 $('sendV3ToV4').onclick=()=>{nav('v4');$('aiNote').value=$('aiReasoning').value.trim()||'V3 reasoning belum tersedia.';$('invalidation').value='V3 invalidation: gunakan kondisi yang membatalkan struktur/evidence tervalidasi. Probability: '+($('probability').innerText||'NOT_AVAILABLE').replace(/\n/g,' ');updateV4();};
 ['setupConditions','invalidation','aiNote'].forEach(id=>$(id).addEventListener('input',updateV4));
 function getVisualData(){ return state.vision || {chart_identity:{symbol:'NOT_AVAILABLE',timeframes:[],prices:[]},indicators:{status:'NOT_AVAILABLE',detected:[]},reversal_candles:{status:'NOT_AVAILABLE',detected:[]},reversal_chart_patterns:{status:'NOT_AVAILABLE',detected:[]},market_structure:{status:'NOT_AVAILABLE'},support_resistance:{status:'NOT_AVAILABLE'},volume:{status:'NOT_AVAILABLE'},order_book:{status:'NOT_AVAILABLE'},multi_timeframe:{status:'UNCERTAIN'}}; }
@@ -602,7 +599,7 @@ function download(name,data,type){
   a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
 }
 
-renderFiles();renderHistory(); updateV4();
+renderFiles();renderHistory(); updateV4(); renderV3();
 </script>
 </body>
 </html>
