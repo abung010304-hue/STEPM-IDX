@@ -598,30 +598,33 @@ $('deleteAll').onclick=()=>{
 
 function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 function flattenRecord(x){
-  const buy=x.analysis.buy==='NOT_AVAILABLE'?'NOT_AVAILABLE':x.analysis.buy.join(' - ');
+  const buy=x.analysis?.buy==='NOT_AVAILABLE'?'NOT_AVAILABLE':(Array.isArray(x.analysis?.buy)?x.analysis.buy.join(' - '):'NOT_AVAILABLE');
   const p=x.v3?.probability||{};
   const c=x.v3?.confluence||{};
+  const v=x.visual||{};
+  const chart=v.chart_identity||v.chartIdentity||{};
   return {
     analysisId:x.analysisId,createdAt:x.createdAt,imageCount:x.imageCount,photosStored:false,
-    ticker:'NOT_AVAILABLE',timeframes:'ALL_VISIBLE',
-    indicatorStatus:x.visual?.indicators?.status||'NOT_AVAILABLE',
-    candleReversalStatus:x.visual?.reversalCandles?.status||'NOT_AVAILABLE',
-    chartPatternStatus:x.visual?.reversalChartPatterns?.status||'NOT_AVAILABLE',
-    marketStructureStatus:x.visual?.marketStructure?.status||'NOT_AVAILABLE',
-    supportResistanceStatus:x.visual?.supportResistance?.status||'NOT_AVAILABLE',
-    volumeStatus:x.visual?.volume?.status||'NOT_AVAILABLE',
-    orderBookStatus:x.visual?.orderBook?.status||'NOT_AVAILABLE',
-    multiTimeframeStatus:x.visual?.multiTimeframe?.status||'NOT_AVAILABLE',
+    ticker:chart.symbol||'NOT_AVAILABLE',
+    timeframes:Array.isArray(chart.timeframes)?chart.timeframes.join(' · '):'ALL_VISIBLE',
+    indicatorStatus:v.indicators?.status||'NOT_AVAILABLE',
+    candleReversalStatus:v.reversal_candles?.status||v.reversalCandles?.status||'NOT_AVAILABLE',
+    chartPatternStatus:v.reversal_chart_patterns?.status||v.reversalChartPatterns?.status||'NOT_AVAILABLE',
+    marketStructureStatus:v.market_structure?.status||v.marketStructure?.status||'NOT_AVAILABLE',
+    supportResistanceStatus:v.support_resistance?.status||v.supportResistance?.status||'NOT_AVAILABLE',
+    volumeStatus:v.volume?.status||'NOT_AVAILABLE',
+    orderBookStatus:v.order_book?.status||v.orderBook?.status||'NOT_AVAILABLE',
+    multiTimeframeStatus:v.multi_timeframe?.status||v.multiTimeframe?.status||'NOT_AVAILABLE',
     confluenceScore:c.score??'NOT_AVAILABLE',confluenceStatus:c.status??'NOT_AVAILABLE',
     probability:p.value==null?'NOT_AVAILABLE':(p.value*100).toFixed(2)+'%',
     probabilityStatus:p.status??'NOT_AVAILABLE',probabilityReason:p.reason??'NOT_AVAILABLE',
     sampleSize:p.sampleSize??'NOT_AVAILABLE',wins:p.wins??'NOT_AVAILABLE',
-    buyArea:buy,entryMid:x.v4?.entryMid??'NOT_AVAILABLE',sl:x.analysis.sl,
-    tp1:x.analysis.tp1,tp2:x.analysis.tp2,riskPerUnit:x.v4?.riskPerUnit??'NOT_AVAILABLE',
+    buyArea:buy,entryMid:x.v4?.entryMid??'NOT_AVAILABLE',sl:x.analysis?.sl??'NOT_AVAILABLE',
+    tp1:x.analysis?.tp1??'NOT_AVAILABLE',tp2:x.analysis?.tp2??'NOT_AVAILABLE',riskPerUnit:x.v4?.riskPerUnit??'NOT_AVAILABLE',
     rrTP1:x.v4?.rrTP1??'NOT_AVAILABLE',rrTP2:x.v4?.rrTP2??'NOT_AVAILABLE',
-    v4Status:x.v4?.status??'NOT_AVAILABLE',setupConditions:x.setupConditions,
-    invalidation:x.invalidation,aiReasoning:x.v3?.reasoning?.summary??'NOT_AVAILABLE',
-    aiStatus:x.v3?.reasoning?.status??'NOT_AVAILABLE',notes:x.analysis.notes
+    v4Status:x.v4?.status??'NOT_AVAILABLE',setupConditions:x.setupConditions??'NOT_AVAILABLE',
+    invalidation:x.invalidation??'NOT_AVAILABLE',aiReasoning:x.v3?.reasoning?.summary??'NOT_AVAILABLE',
+    aiStatus:x.v3?.reasoning?.status??'NOT_AVAILABLE',notes:x.analysis?.notes??'NOT_AVAILABLE'
   };
 }
 $('exportBtn').onclick=()=>{
