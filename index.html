@@ -353,61 +353,94 @@ function getV2Evidence(){
   const s=k=>{const x=d[k]||{}; const st=x.status||'UNCERTAIN'; return {status:st==='VALIDATED'?'VALIDATED':st==='UNCERTAIN'?'UNCERTAIN':'NOT_AVAILABLE',validated:st==='VALIDATED'};};
   return {indicators:s('indicators'),candles:s('reversal_candles'),chartPatterns:s('reversal_chart_patterns'),marketStructure:s('market_structure'),volume:s('volume'),orderBook:s('order_book'),multiTimeframe:s('multi_timeframe')};
 }
-async function optimizeVisionImage(file){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onerror=()=>reject(new Error('Gagal membaca '+file.name));
-    reader.onload=()=>{
-      const img=new Image();
-      img.onload=()=>{
-        const MAX_SIDE=1800;
-        const scale=Math.min(1,MAX_SIDE/Math.max(img.naturalWidth,img.naturalHeight));
-        const w=Math.max(1,Math.round(img.naturalWidth*scale));
-        const h=Math.max(1,Math.round(img.naturalHeight*scale));
-        const canvas=document.createElement('canvas');
-        canvas.width=w; canvas.height=h;
-        const ctx=canvas.getContext('2d',{alpha:false});
-        ctx.drawImage(img,0,0,w,h);
-        let quality=0.82;
-        let dataUrl=canvas.toDataURL('image/webp',quality);
-        if(!dataUrl.startsWith('data:image/webp')) dataUrl=canvas.toDataURL('image/jpeg',quality);
-        const MAX_BYTES=420000;
-        while(dataUrl.length*0.75>MAX_BYTES && quality>0.58){
-          quality-=0.06;
-          dataUrl=canvas.toDataURL(dataUrl.startsWith('data:image/webp')?'image/webp':'image/jpeg',quality);
-        }
-        resolve({name:file.name,mimeType:dataUrl.slice(5,dataUrl.indexOf(';')),dataUrl,originalBytes:file.size,optimizedBytes:Math.round(dataUrl.length*0.75)});
+// --- OPTIMASI FOTO: 1600px · JPEG 0.88 · SINGLE-PASS ---
+async function optimizeVisionImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Gagal membaca ' + file.name));
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_SIDE = 1600;
+        const scale = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        resolve({
+          name: file.name,
+          mimeType: 'image/jpeg',
+          dataUrl,
+          originalBytes: file.size,
+          optimizedBytes: Math.round(dataUrl.length * 0.75)
+        });
         URL.revokeObjectURL(img.src);
       };
-      img.onerror=()=>reject(new Error('Gagal memuat '+file.name));
-      img.src=reader.result;
+      img.onerror = () => reject(new Error('Gagal memuat ' + file.name));
+      img.src = reader.result;
     };
     reader.readAsDataURL(file);
   });
 }
 
-async function analyzeVision(){
-  if(!state.files.length){$('visionMessage').textContent='Tambahkan minimal 1 screenshot di V1 terlebih dahulu.';nav('v1');return;}
-  const btn=$('visionAnalyzeBtn'); btn.disabled=true; $('visionStatus').textContent='VISION: OPTIMIZING'; $('visionMessage').textContent='Mengoptimalkan '+state.files.length+' foto agar Vision AI lebih cepat…';
-  try{
-    const images=[];
-    let originalTotal=0,optimizedTotal=0;
-    for(const file of state.files){
-      const image=await optimizeVisionImage(file);
-      images.push({name:image.name,mimeType:image.mimeType,dataUrl:image.dataUrl});
-      originalTotal+=image.originalBytes; optimizedTotal+=image.optimizedBytes;
+// --- ALUR VISION AI DENGAN UI YIELD 10ms ---
+async function analyzeVision() {
+  if (!state.files.length) {
+    $('visionMessage').textContent = 'Tambahkan minimal 1 screenshot di V1 terlebih dahulu.';
+    nav('v1');
+    return;
+  }
+
+  const btn = $('visionAnalyzeBtn');
+  btn.disabled = true;
+  $('visionStatus').textContent = 'VISION: OPTIMIZING';
+
+  try {
+    const images = [];
+    let originalTotal = 0, optimizedTotal = 0;
+
+    for (let i = 0; i < state.files.length; i++) {
+      const file = state.files[i];
+      $('visionMessage').textContent = `Mengompresi foto ${i + 1} dari ${state.files.length} (${file.name})…`;
+      await new Promise(r => setTimeout(r, 10));
+      const image = await optimizeVisionImage(file);
+      images.push({ name: image.name, mimeType: image.mimeType, dataUrl: image.dataUrl });
+      originalTotal += image.originalBytes;
+      optimizedTotal += image.optimizedBytes;
     }
-    const ratio=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
-    $('visionStatus').textContent='VISION: ANALYZING';
-    $('visionMessage').textContent='Paket siap. Ukuran gambar diperkecil sekitar '+Math.max(0,ratio)+'% sebelum dikirim ke Vision Engine.';
-    const res=await fetch('/api/vision/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images})});
-    const data=await res.json(); if(!res.ok)throw new Error(data.error||'Vision request gagal');
-    state.vision=data; state.scan={...(state.scan||{}),visionAt:new Date().toISOString(),visionStatus:'COMPLETED'};
-    $('visionStatus').textContent='VISION: CONNECTED'; $('visionMessage').textContent='Vision AI selesai. Gambar dioptimalkan hanya di browser sebelum analisis; hasil diteruskan ke V3.'; renderAnalysis();
-  }catch(e){state.vision=null;$('visionStatus').textContent='VISION: ERROR';$('visionMessage').textContent='Gagal: '+e.message+' — pastikan backend Vision Engine berjalan.';renderAnalysis();}
-  finally{btn.disabled=false}
+
+    const ratio = originalTotal ? Math.round((1 - optimizedTotal / originalTotal) * 100) : 0;
+    $('visionStatus').textContent = 'VISION: ANALYZING';
+    $('visionMessage').textContent = `Mengirim paket foto ke Gemini Vision (${Math.max(0, ratio)}% hemat data)…`;
+
+    const res = await fetch('/api/vision/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Vision request gagal');
+
+    state.vision = data;
+    state.scan = { ...(state.scan || {}), visionAt: new Date().toISOString(), visionStatus: 'COMPLETED' };
+    $('visionStatus').textContent = 'VISION: CONNECTED';
+    $('visionMessage').textContent = 'Analisis Vision AI selesai! Hasil diteruskan ke V3.';
+    renderAnalysis();
+  } catch (e) {
+    state.vision = null;
+    $('visionStatus').textContent = 'VISION: ERROR';
+    $('visionMessage').textContent = 'Gagal: ' + e.message + ' — pastikan backend Vision Engine berjalan.';
+    renderAnalysis();
+  } finally {
+    btn.disabled = false;
+  }
 }
-$('visionAnalyzeBtn').onclick=analyzeVision;
+$('visionAnalyzeBtn').onclick = analyzeVision;
 
 const v3Weights={indicators:20,candles:15,chartPatterns:15,marketStructure:20,volume:10,orderBook:10,multiTimeframe:10};
 function renderV3(){
@@ -598,33 +631,30 @@ $('deleteAll').onclick=()=>{
 
 function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 function flattenRecord(x){
-  const buy=x.analysis?.buy==='NOT_AVAILABLE'?'NOT_AVAILABLE':(Array.isArray(x.analysis?.buy)?x.analysis.buy.join(' - '):'NOT_AVAILABLE');
+  const buy=x.analysis.buy==='NOT_AVAILABLE'?'NOT_AVAILABLE':x.analysis.buy.join(' - ');
   const p=x.v3?.probability||{};
   const c=x.v3?.confluence||{};
-  const v=x.visual||{};
-  const chart=v.chart_identity||v.chartIdentity||{};
   return {
     analysisId:x.analysisId,createdAt:x.createdAt,imageCount:x.imageCount,photosStored:false,
-    ticker:chart.symbol||'NOT_AVAILABLE',
-    timeframes:Array.isArray(chart.timeframes)?chart.timeframes.join(' · '):'ALL_VISIBLE',
-    indicatorStatus:v.indicators?.status||'NOT_AVAILABLE',
-    candleReversalStatus:v.reversal_candles?.status||v.reversalCandles?.status||'NOT_AVAILABLE',
-    chartPatternStatus:v.reversal_chart_patterns?.status||v.reversalChartPatterns?.status||'NOT_AVAILABLE',
-    marketStructureStatus:v.market_structure?.status||v.marketStructure?.status||'NOT_AVAILABLE',
-    supportResistanceStatus:v.support_resistance?.status||v.supportResistance?.status||'NOT_AVAILABLE',
-    volumeStatus:v.volume?.status||'NOT_AVAILABLE',
-    orderBookStatus:v.order_book?.status||v.orderBook?.status||'NOT_AVAILABLE',
-    multiTimeframeStatus:v.multi_timeframe?.status||v.multiTimeframe?.status||'NOT_AVAILABLE',
+    ticker:'NOT_AVAILABLE',timeframes:'ALL_VISIBLE',
+    indicatorStatus:x.visual?.indicators?.status||'NOT_AVAILABLE',
+    candleReversalStatus:x.visual?.reversalCandles?.status||'NOT_AVAILABLE',
+    chartPatternStatus:x.visual?.reversalChartPatterns?.status||'NOT_AVAILABLE',
+    marketStructureStatus:x.visual?.marketStructure?.status||'NOT_AVAILABLE',
+    supportResistanceStatus:x.visual?.supportResistance?.status||'NOT_AVAILABLE',
+    volumeStatus:x.visual?.volume?.status||'NOT_AVAILABLE',
+    orderBookStatus:x.visual?.orderBook?.status||'NOT_AVAILABLE',
+    multiTimeframeStatus:x.visual?.multiTimeframe?.status||'NOT_AVAILABLE',
     confluenceScore:c.score??'NOT_AVAILABLE',confluenceStatus:c.status??'NOT_AVAILABLE',
     probability:p.value==null?'NOT_AVAILABLE':(p.value*100).toFixed(2)+'%',
     probabilityStatus:p.status??'NOT_AVAILABLE',probabilityReason:p.reason??'NOT_AVAILABLE',
     sampleSize:p.sampleSize??'NOT_AVAILABLE',wins:p.wins??'NOT_AVAILABLE',
-    buyArea:buy,entryMid:x.v4?.entryMid??'NOT_AVAILABLE',sl:x.analysis?.sl??'NOT_AVAILABLE',
-    tp1:x.analysis?.tp1??'NOT_AVAILABLE',tp2:x.analysis?.tp2??'NOT_AVAILABLE',riskPerUnit:x.v4?.riskPerUnit??'NOT_AVAILABLE',
+    buyArea:buy,entryMid:x.v4?.entryMid??'NOT_AVAILABLE',sl:x.analysis.sl,
+    tp1:x.analysis.tp1,tp2:x.analysis.tp2,riskPerUnit:x.v4?.riskPerUnit??'NOT_AVAILABLE',
     rrTP1:x.v4?.rrTP1??'NOT_AVAILABLE',rrTP2:x.v4?.rrTP2??'NOT_AVAILABLE',
-    v4Status:x.v4?.status??'NOT_AVAILABLE',setupConditions:x.setupConditions??'NOT_AVAILABLE',
-    invalidation:x.invalidation??'NOT_AVAILABLE',aiReasoning:x.v3?.reasoning?.summary??'NOT_AVAILABLE',
-    aiStatus:x.v3?.reasoning?.status??'NOT_AVAILABLE',notes:x.analysis?.notes??'NOT_AVAILABLE'
+    v4Status:x.v4?.status??'NOT_AVAILABLE',setupConditions:x.setupConditions,
+    invalidation:x.invalidation,aiReasoning:x.v3?.reasoning?.summary??'NOT_AVAILABLE',
+    aiStatus:x.v3?.reasoning?.status??'NOT_AVAILABLE',notes:x.analysis.notes
   };
 }
 $('exportBtn').onclick=()=>{
