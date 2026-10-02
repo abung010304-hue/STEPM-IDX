@@ -353,15 +353,57 @@ function getV2Evidence(){
   const s=k=>{const x=d[k]||{}; const st=x.status||'UNCERTAIN'; return {status:st==='VALIDATED'?'VALIDATED':st==='UNCERTAIN'?'UNCERTAIN':'NOT_AVAILABLE',validated:st==='VALIDATED'};};
   return {indicators:s('indicators'),candles:s('reversal_candles'),chartPatterns:s('reversal_chart_patterns'),marketStructure:s('market_structure'),volume:s('volume'),orderBook:s('order_book'),multiTimeframe:s('multi_timeframe')};
 }
+async function optimizeVisionImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Gagal membaca '+file.name));
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX_SIDE=1800;
+        const scale=Math.min(1,MAX_SIDE/Math.max(img.naturalWidth,img.naturalHeight));
+        const w=Math.max(1,Math.round(img.naturalWidth*scale));
+        const h=Math.max(1,Math.round(img.naturalHeight*scale));
+        const canvas=document.createElement('canvas');
+        canvas.width=w; canvas.height=h;
+        const ctx=canvas.getContext('2d',{alpha:false});
+        ctx.drawImage(img,0,0,w,h);
+        let quality=0.82;
+        let dataUrl=canvas.toDataURL('image/webp',quality);
+        if(!dataUrl.startsWith('data:image/webp')) dataUrl=canvas.toDataURL('image/jpeg',quality);
+        const MAX_BYTES=420000;
+        while(dataUrl.length*0.75>MAX_BYTES && quality>0.58){
+          quality-=0.06;
+          dataUrl=canvas.toDataURL(dataUrl.startsWith('data:image/webp')?'image/webp':'image/jpeg',quality);
+        }
+        resolve({name:file.name,mimeType:dataUrl.slice(5,dataUrl.indexOf(';')),dataUrl,originalBytes:file.size,optimizedBytes:Math.round(dataUrl.length*0.75)});
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror=()=>reject(new Error('Gagal memuat '+file.name));
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function analyzeVision(){
   if(!state.files.length){$('visionMessage').textContent='Tambahkan minimal 1 screenshot di V1 terlebih dahulu.';nav('v1');return;}
-  const btn=$('visionAnalyzeBtn'); btn.disabled=true; $('visionStatus').textContent='VISION: ANALYZING'; $('visionMessage').textContent='Mengirim paket '+state.files.length+' foto ke Vision Engine…';
+  const btn=$('visionAnalyzeBtn'); btn.disabled=true; $('visionStatus').textContent='VISION: OPTIMIZING'; $('visionMessage').textContent='Mengoptimalkan '+state.files.length+' foto agar Vision AI lebih cepat…';
   try{
-    const images=await Promise.all(state.files.map(file=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:file.name,mimeType:file.type||'image/jpeg',dataUrl:r.result});r.onerror=reject;r.readAsDataURL(file)})));
+    const images=[];
+    let originalTotal=0,optimizedTotal=0;
+    for(const file of state.files){
+      const image=await optimizeVisionImage(file);
+      images.push({name:image.name,mimeType:image.mimeType,dataUrl:image.dataUrl});
+      originalTotal+=image.originalBytes; optimizedTotal+=image.optimizedBytes;
+    }
+    const ratio=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
+    $('visionStatus').textContent='VISION: ANALYZING';
+    $('visionMessage').textContent='Paket siap. Ukuran gambar diperkecil sekitar '+Math.max(0,ratio)+'% sebelum dikirim ke Vision Engine.';
     const res=await fetch('/api/vision/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images})});
     const data=await res.json(); if(!res.ok)throw new Error(data.error||'Vision request gagal');
     state.vision=data; state.scan={...(state.scan||{}),visionAt:new Date().toISOString(),visionStatus:'COMPLETED'};
-    $('visionStatus').textContent='VISION: CONNECTED'; $('visionMessage').textContent='Vision AI selesai. Hasil disimpan hanya di sesi browser dan akan diteruskan ke V3.'; renderAnalysis();
+    $('visionStatus').textContent='VISION: CONNECTED'; $('visionMessage').textContent='Vision AI selesai. Gambar dioptimalkan hanya di browser sebelum analisis; hasil diteruskan ke V3.'; renderAnalysis();
   }catch(e){state.vision=null;$('visionStatus').textContent='VISION: ERROR';$('visionMessage').textContent='Gagal: '+e.message+' — pastikan backend Vision Engine berjalan.';renderAnalysis();}
   finally{btn.disabled=false}
 }
