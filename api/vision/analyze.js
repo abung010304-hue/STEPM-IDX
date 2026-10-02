@@ -1,6 +1,6 @@
-const MODEL = "gemini-3.5-flash";
+const MODEL = "gemini-3.6-flash";
 
-const MAX_RETRIES = 4;
+const MAX_RETRIES = 0;
 const RETRY_DELAYS = [2000, 4000, 8000, 16000];
 
 const RETRYABLE_STATUS_CODES = new Set([
