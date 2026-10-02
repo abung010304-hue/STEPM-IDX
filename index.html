@@ -379,10 +379,36 @@ function renderV3(){
   $('score').textContent=score+'%'; $('scorebar').style.width=score+'%';
   $('scoreText').textContent=score===0?'INSUFFICIENT_VALIDATED_EVIDENCE — belum ada evidence visual tervalidasi.':'Skor dihitung hanya dari evidence berstatus VALIDATED.';
   $('scoreBreakdown').innerHTML=rows.map(r=>'<div class="kv"><b>'+r[0]+'</b><span>'+r[1]+' · '+(r[1]==='VALIDATED'?r[2]:'0')+' poin</span></div>').join('');
-  $('scenarios').innerHTML=
-    '<div class="scenario goodline"><b>Bullish scenario</b><br><span class="muted">Terpicu hanya jika evidence bullish tervalidasi dan kondisi konfirmasi terpenuhi. Saat ini: belum dapat disimpulkan.</span></div>'+
-    '<div class="scenario"><b>Base / continuation scenario</b><br><span class="muted">Memerlukan struktur dan timeframe yang konsisten. Saat ini: belum dapat disimpulkan.</span></div>'+
-    '<div class="scenario dangerline"><b>Bearish / invalidation scenario</b><br><span class="muted">Dipertimbangkan bila struktur kehilangan support/konfirmasi atau evidence berlawanan tervalidasi.</span></div>';
+  if(state.v3Reasoning?.confluence_assessment){
+    $('scoreBreakdown').innerHTML += '<div class="scenario" style="margin-top:10px"><b>AI Confluence Assessment</b><br><span class="muted">'+esc(state.v3Reasoning.confluence_assessment)+'</span></div>';
+  }
+  const rr=state.v3Reasoning||{};
+  const aiScenarios=Array.isArray(rr.scenarios)?rr.scenarios:[];
+  const scenarioText=(s)=>{
+    if(typeof s==='string') return {name:'AI SCENARIO',status:'CONDITION_DEPENDENT',summary:s};
+    return {
+      name:s?.name||s?.scenario||'AI SCENARIO',
+      status:s?.status||'CONDITION_DEPENDENT',
+      summary:s?.summary||s?.reasoning||s?.condition||s?.description||'NOT_AVAILABLE',
+      trigger:s?.trigger||s?.conditions||'',
+      invalidation:s?.invalidation||''
+    };
+  };
+  if(aiScenarios.length){
+    $('scenarios').innerHTML=aiScenarios.map((raw,i)=>{
+      const s=scenarioText(raw);
+      const n=String(s.name).toUpperCase();
+      const cls=n.includes('BEAR')||n.includes('INVALID')?'dangerline':n.includes('BULL')?'goodline':'';
+      return '<div class="scenario '+cls+'"><b>'+esc(s.name)+'</b> <span class="pill">'+esc(s.status)+'</span><br>'+
+        '<span class="muted">'+esc(s.summary)+'</span>'+
+        (s.trigger?'<br><span class="small">Kondisi/trigger: '+esc(typeof s.trigger==='object'?JSON.stringify(s.trigger):s.trigger)+'</span>':'')+
+        (s.invalidation?'<br><span class="small">Invalidation: '+esc(typeof s.invalidation==='object'?JSON.stringify(s.invalidation):s.invalidation)+'</span>':'')+
+        '</div>';
+    }).join('');
+  }else{
+    $('scenarios').innerHTML=
+      '<div class="scenario"><b>AI scenario belum tersedia</b><br><span class="muted">Jalankan AI Reasoning V3 untuk mengisi Scenario Engine dari evidence V2.</span></div>';
+  }
   updateProbability(); updateV3RiskReward(); updateV3Payload();
 }
 function updateProbability(){
