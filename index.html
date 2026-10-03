@@ -519,7 +519,9 @@ function buildV4Object(){
 function buildV3Object(){
   const n=Number($('probN').value),wins=Number($('probWins').value),setup=$('probSetup').value.trim(),horizon=$('probHorizon').value.trim(),costs=$('probCosts').value.trim(),cal=$('probCalibration').value;
   const probReady=setup&&horizon&&costs&&n>0&&wins>=0&&wins<=n&&(cal==='CALIBRATED'||cal==='VALIDATED_OOS');
-  return {version:'STEPM-IDX-V3',evidence:getV2Evidence(),reasoning:{status:$('aiReasoning').value.trim()?'USER_SUPPLIED_AI_REASONING':'AI_ADAPTER_NOT_CONNECTED',summary:$('aiReasoning').value.trim()||'NOT_AVAILABLE'},confluence:{score:Number($('score').textContent.replace('%',''))||0,status:Number($('score').textContent.replace('%',''))>0?'CALCULATED':'INSUFFICIENT_VALIDATED_EVIDENCE',weights:v3Weights},probability:{value:probReady?wins/n:null,status:probReady?'CALCULATED':'NOT_AVAILABLE',reason:probReady?'EMPIRICAL_SAMPLE':'NO_VALID_CALIBRATED_SAMPLE',sampleSize:probReady?n:null,wins:probReady?wins:null,setup:setup||'NOT_AVAILABLE',horizon:horizon||'NOT_AVAILABLE',costs:costs||'NOT_AVAILABLE',calibration:cal},scenarios:[{name:'BULLISH',status:'CONDITION_DEPENDENT'},{name:'BASE',status:'CONDITION_DEPENDENT'},{name:'BEARISH',status:'CONDITION_DEPENDENT'}],riskReward:{status:$('v3rrStatus').textContent,value:$('v3rr').textContent}};
+  const aiSummary=$('aiReasoning').value.trim() || state.v3Reasoning?.summary || 'NOT_AVAILABLE';
+  const aiStatus=state.v3Reasoning?.status || (aiSummary!=='NOT_AVAILABLE'?'USER_SUPPLIED_AI_REASONING':'AI_ADAPTER_NOT_CONNECTED');
+  return {version:'STEPM-IDX-V3',evidence:getV2Evidence(),reasoning:{status:aiStatus,summary:aiSummary},confluence:{score:Number($('score').textContent.replace('%',''))||0,status:Number($('score').textContent.replace('%',''))>0?'CALCULATED':'INSUFFICIENT_VALIDATED_EVIDENCE',weights:v3Weights},probability:{value:probReady?wins/n:null,status:probReady?'CALCULATED':'NOT_AVAILABLE',reason:probReady?'EMPIRICAL_SAMPLE':'NO_VALID_CALIBRATED_SAMPLE',sampleSize:probReady?n:null,wins:probReady?wins:null,setup:setup||'NOT_AVAILABLE',horizon:horizon||'NOT_AVAILABLE',costs:costs||'NOT_AVAILABLE',calibration:cal},scenarios:[{name:'BULLISH',status:'CONDITION_DEPENDENT'},{name:'BASE',status:'CONDITION_DEPENDENT'},{name:'BEARISH',status:'CONDITION_DEPENDENT'}],riskReward:{status:$('v3rrStatus').textContent,value:$('v3rr').textContent}};
 }
 function updateV3Payload(){$('v3Payload').textContent=JSON.stringify(buildV3Object(),null,2)}
   async function runV3Reasoning(){
@@ -634,17 +636,20 @@ function flattenRecord(x){
   const buy=x.analysis.buy==='NOT_AVAILABLE'?'NOT_AVAILABLE':x.analysis.buy.join(' - ');
   const p=x.v3?.probability||{};
   const c=x.v3?.confluence||{};
+  const v=x.visual||{};
+  const status=(...values)=>values.find(v=>v!==undefined&&v!==null&&v!=='')||'NOT_AVAILABLE';
   return {
     analysisId:x.analysisId,createdAt:x.createdAt,imageCount:x.imageCount,photosStored:false,
-    ticker:'NOT_AVAILABLE',timeframes:'ALL_VISIBLE',
-    indicatorStatus:x.visual?.indicators?.status||'NOT_AVAILABLE',
-    candleReversalStatus:x.visual?.reversalCandles?.status||'NOT_AVAILABLE',
-    chartPatternStatus:x.visual?.reversalChartPatterns?.status||'NOT_AVAILABLE',
-    marketStructureStatus:x.visual?.marketStructure?.status||'NOT_AVAILABLE',
-    supportResistanceStatus:x.visual?.supportResistance?.status||'NOT_AVAILABLE',
-    volumeStatus:x.visual?.volume?.status||'NOT_AVAILABLE',
-    orderBookStatus:x.visual?.orderBook?.status||'NOT_AVAILABLE',
-    multiTimeframeStatus:x.visual?.multiTimeframe?.status||'NOT_AVAILABLE',
+    ticker:v.chart_identity?.symbol||'NOT_AVAILABLE',
+    timeframes:Array.isArray(v.chart_identity?.timeframes)?v.chart_identity.timeframes.join(' · '):'ALL_VISIBLE',
+    indicatorStatus:status(v.indicators?.status),
+    candleReversalStatus:status(v.reversal_candles?.status,v.reversalCandles?.status),
+    chartPatternStatus:status(v.reversal_chart_patterns?.status,v.reversalChartPatterns?.status),
+    marketStructureStatus:status(v.market_structure?.status,v.marketStructure?.status),
+    supportResistanceStatus:status(v.support_resistance?.status,v.supportResistance?.status),
+    volumeStatus:status(v.volume?.status),
+    orderBookStatus:status(v.order_book?.status,v.orderBook?.status),
+    multiTimeframeStatus:status(v.multi_timeframe?.status,v.multiTimeframe?.status),
     confluenceScore:c.score??'NOT_AVAILABLE',confluenceStatus:c.status??'NOT_AVAILABLE',
     probability:p.value==null?'NOT_AVAILABLE':(p.value*100).toFixed(2)+'%',
     probabilityStatus:p.status??'NOT_AVAILABLE',probabilityReason:p.reason??'NOT_AVAILABLE',
