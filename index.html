@@ -520,7 +520,8 @@ function buildV3Object(){
   const n=Number($('probN').value),wins=Number($('probWins').value),setup=$('probSetup').value.trim(),horizon=$('probHorizon').value.trim(),costs=$('probCosts').value.trim(),cal=$('probCalibration').value;
   const probReady=setup&&horizon&&costs&&n>0&&wins>=0&&wins<=n&&(cal==='CALIBRATED'||cal==='VALIDATED_OOS');
   const aiSummary=$('aiReasoning').value.trim() || state.v3Reasoning?.summary || 'NOT_AVAILABLE';
-  const aiStatus=state.v3Reasoning?.status || (aiSummary!=='NOT_AVAILABLE'?'USER_SUPPLIED_AI_REASONING':'AI_ADAPTER_NOT_CONNECTED');
+  const uiAiStatus=$('aiStatus')?.textContent?.trim();
+  const aiStatus=['AI_REASONING_CONNECTED','AI_REASONING_ANALYZING','AI_REASONING_ERROR','V2_EVIDENCE_NOT_AVAILABLE'].includes(uiAiStatus) ? uiAiStatus : (state.v3Reasoning?.status || (aiSummary!=='NOT_AVAILABLE'?'USER_SUPPLIED_AI_REASONING':'AI_ADAPTER_NOT_CONNECTED'));
   return {version:'STEPM-IDX-V3',evidence:getV2Evidence(),reasoning:{status:aiStatus,summary:aiSummary},confluence:{score:Number($('score').textContent.replace('%',''))||0,status:Number($('score').textContent.replace('%',''))>0?'CALCULATED':'INSUFFICIENT_VALIDATED_EVIDENCE',weights:v3Weights},probability:{value:probReady?wins/n:null,status:probReady?'CALCULATED':'NOT_AVAILABLE',reason:probReady?'EMPIRICAL_SAMPLE':'NO_VALID_CALIBRATED_SAMPLE',sampleSize:probReady?n:null,wins:probReady?wins:null,setup:setup||'NOT_AVAILABLE',horizon:horizon||'NOT_AVAILABLE',costs:costs||'NOT_AVAILABLE',calibration:cal},scenarios:[{name:'BULLISH',status:'CONDITION_DEPENDENT'},{name:'BASE',status:'CONDITION_DEPENDENT'},{name:'BEARISH',status:'CONDITION_DEPENDENT'}],riskReward:{status:$('v3rrStatus').textContent,value:$('v3rr').textContent}};
 }
 function updateV3Payload(){$('v3Payload').textContent=JSON.stringify(buildV3Object(),null,2)}
